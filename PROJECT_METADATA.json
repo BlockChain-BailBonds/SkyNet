@@ -1,0 +1,25 @@
+{
+  "project_name": "SkyNet",
+  "tagline": "RuView × Earth Intelligence — interactive geographic observation dashboard",
+  "version": "0.5",
+  "intellectual_property_attribution": "Intellectual property by Matthew Blake Ward, in association with 918 Technologies.",
+  "copyright": "© 2026 Matthew Blake Ward, in association with 918 Technologies. All rights reserved as to original contributions.",
+  "upstream_sensor_software": "RuView (third-party, separately licensed)",
+  "scope": "Original SkyNet integration components; external services and datasets excluded",
+  "status": "Starter: no hardware acceptance or global sensing capability verified",
+  "map_capabilities": [
+    "Google Maps JavaScript API with user-supplied key",
+    "OpenStreetMap fallback",
+    "address geocoding",
+    "NASA GIBS WMS overlays",
+    "USGS 3DEP DEM relief tiles",
+    "GeoJSON geometry import/export",
+    "read-only public source status"
+  ],
+  "validation": "Automated unit and HTTP tests passed, JS syntax checked; browser interaction, carrier SMS, public HTTPS deployment and real RuView physical hardware NOT yet validated",
+  "sms_enrollment": {
+    "mode": "native SMS compose or copy; no automatic SMS sending",
+    "requirements": "operator token, public HTTPS consent endpoint, explicit recipient consent and browser sensor permissions",
+    "limits": "phone motion only; no remote Wi-Fi CSI capability"
+  }
+}
