@@ -1,0 +1,42 @@
+name: Chimera Live Engine Validation
+on:
+  push:
+    paths:
+      - "chimera/**"
+      - ".github/workflows/chimera-ci.yml"
+  pull_request:
+    paths:
+      - "chimera/**"
+      - ".github/workflows/chimera-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chimera/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install tested Python API dependencies
+        run: python -m pip install -e ".[test]"
+      - name: Execute API and fusion regression tests
+        run: python -m pytest -q
+      - name: Validate deployed dashboard JavaScript
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src=Path("../index.html").read_text(encoding="utf-8")
+          assert "<script>" in src and "</script>" in src
+          Path("/tmp/chimera-dashboard-check.js").write_text(src.split("<script>",1)[1].split("</script>",1)[0],encoding="utf-8")
+          PY
+          node --check /tmp/chimera-dashboard-check.js
