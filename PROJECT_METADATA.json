@@ -1,9 +1,9 @@
 {
   "project_name": "SkyNet",
-  "tagline": "RuView × Earth Intelligence — interactive geographic observation dashboard",
+  "tagline": "RuView \u00d7 Earth Intelligence \u2014 interactive geographic observation dashboard",
   "version": "0.5",
   "intellectual_property_attribution": "Intellectual property by Matthew Blake Ward, in association with 918 Technologies.",
-  "copyright": "© 2026 Matthew Blake Ward, in association with 918 Technologies. All rights reserved as to original contributions.",
+  "copyright": "\u00a9 2026 Matthew Blake Ward, in association with 918 Technologies. All rights reserved as to original contributions.",
   "upstream_sensor_software": "RuView (third-party, separately licensed)",
   "scope": "Original SkyNet integration components; external services and datasets excluded",
   "status": "Starter: no hardware acceptance or global sensing capability verified",

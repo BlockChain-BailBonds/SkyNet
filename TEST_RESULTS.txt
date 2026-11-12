@@ -1,0 +1,36 @@
+test_attribution_and_no_fake_live_data (test_dashboard.DashboardTests.test_attribution_and_no_fake_live_data) ... ok
+test_dom_id_uniqueness (test_dashboard.DashboardTests.test_dom_id_uniqueness) ... ok
+test_google_map_is_keyed_and_not_embedded_secret (test_dashboard.DashboardTests.test_google_map_is_keyed_and_not_embedded_secret) ... ok
+test_source_layers_and_read_only_data (test_dashboard.DashboardTests.test_source_layers_and_read_only_data) ... ok
+test_standalone_copy_matches_backend (test_dashboard.DashboardTests.test_standalone_copy_matches_backend) ... ok
+test_attribution_and_dependency_notice (test_gateway.SkyNetBrandingTests.test_attribution_and_dependency_notice) ... ok
+test_project_metadata_attribution (test_gateway.SkyNetBrandingTests.test_project_metadata_attribution) ... ok
+test_bbox_valid (test_gateway.ValidationTests.test_bbox_valid) ... ok
+test_point_elevation_parse_and_hash (test_gateway.ValidationTests.test_point_elevation_parse_and_hash) ... ok
+test_provenance_only_public_and_no_raw (test_gateway.ValidationTests.test_provenance_only_public_and_no_raw) ... ok
+test_public_feeds_fail_independently (test_gateway.ValidationTests.test_public_feeds_fail_independently) ... ok
+test_reject_bad_geopoint (test_gateway.ValidationTests.test_reject_bad_geopoint) ... ok
+test_ruview_target_restricted (test_gateway.ValidationTests.test_ruview_target_restricted) ... ok
+test_scan_separates_public_feeds (test_gateway.ValidationTests.test_scan_separates_public_feeds) ... ok
+test_snapshot_marks_simulation_and_unverified_signatures (test_gateway.ValidationTests.test_snapshot_marks_simulation_and_unverified_signatures) ... ok
+test_accept_aggregate_then_stop_and_revoke (test_optin_sms.EnrollmentTests.test_accept_aggregate_then_stop_and_revoke) ... ok
+test_expired_invitation_rejected (test_optin_sms.EnrollmentTests.test_expired_invitation_rejected) ... ok
+test_heartbeat_without_motion_not_claimed_as_detection (test_optin_sms.EnrollmentTests.test_heartbeat_without_motion_not_claimed_as_detection) ... ok
+test_invitation_is_opaque_single_use_and_expires (test_optin_sms.EnrollmentTests.test_invitation_is_opaque_single_use_and_expires) ... ok
+test_old_sites_reclaimed_after_expiry (test_optin_sms.EnrollmentTests.test_old_sites_reclaimed_after_expiry) ... ok
+test_reject_consent_substitutions (test_optin_sms.EnrollmentTests.test_reject_consent_substitutions) ... ok
+test_reject_remote_or_inaccurate_reported_location (test_optin_sms.EnrollmentTests.test_reject_remote_or_inaccurate_reported_location) ... ok
+test_validation_and_ratelimits (test_optin_sms.EnrollmentTests.test_validation_and_ratelimits) ... ok
+test_public_join_route_and_protected_admin_invite (test_optin_sms.HTTPTests.test_public_join_route_and_protected_admin_invite) ... [2026-11-12T05:43:58+00:00] request=GET status_path=/join
+[2026-11-12T05:43:58+00:00] request=POST status_path=/api/sites/invite
+[2026-11-12T05:43:58+00:00] request=POST status_path=/api/sites/invite
+[2026-11-12T05:43:58+00:00] request=GET status_path=/api/enroll/info
+[2026-11-12T05:43:58+00:00] request=GET status_path=/api/sites/status
+ok
+test_browser_consent_and_sms_links_present (test_optin_sms.URLAndFrontendTests.test_browser_consent_and_sms_links_present) ... ok
+test_public_https_origin_only (test_optin_sms.URLAndFrontendTests.test_public_https_origin_only) ... ok
+
+----------------------------------------------------------------------
+Ran 26 tests in 0.522s
+
+OK
