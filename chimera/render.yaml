@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: 918-chimera-lab-api
+    runtime: docker
+    repo: https://github.com/BlockChain-BailBonds/SkyNet
+    branch: main
+    rootDir: chimera/backend
+    plan: starter
+    autoDeployTrigger: checksPass
+    healthCheckPath: /api/health
+    envVars:
+      - key: CHIMERA_ENV
+        value: production
+      - key: CHIMERA_OPERATOR_KEY
+        generateValue: true
+      - key: CHIMERA_CORS_ORIGINS
+        value: https://blockchain-bailbonds.github.io
+      - key: GITHUB_TOKEN
+        sync: false
