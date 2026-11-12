@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "ruvnet/RuView", "description": "WiFi channel state information sensing and spatial telemetry with ESP32 experimental models and network integrations", "topics": ["wifi", "csi", "sensing", "esp32", "iot", "mqtt"], "language": "Rust", "license": "MIT", "root_files": ["README.md", "Cargo.toml"], "source_url": "https://github.com/ruvnet/RuView"
+  },
+  {
+    "slug": "open-meteo/open-meteo", "description": "Weather forecast API with geographic environmental data served over HTTP", "topics": ["weather", "forecast", "api", "climate"], "language": "Swift", "license": "AGPL-3.0", "root_files": ["README.md", "Package.swift"], "source_url": "https://github.com/open-meteo/open-meteo"
+  },
+  {
+    "slug": "maplibre/maplibre-gl-js", "description": "WebGL JavaScript mapping library for vector tile maps and geospatial visualization", "topics": ["mapping", "geospatial", "javascript", "visualization"], "language": "TypeScript", "license": "BSD-3-Clause", "root_files": ["package.json", "README.md"], "source_url": "https://github.com/maplibre/maplibre-gl-js"
+  },
+  {
+    "slug": "networkx/networkx", "description": "Python graph algorithms and network analysis", "topics": ["graph", "python", "network-analysis"], "language": "Python", "license": "BSD-3-Clause", "root_files": ["pyproject.toml", "README.rst"], "source_url": "https://github.com/networkx/networkx"
+  },
+  {
+    "slug": "ollama/ollama", "description": "Run large language models locally using a REST API", "topics": ["llm", "inference", "ai", "api"], "language": "Go", "license": "MIT", "root_files": ["README.md", "go.mod"], "source_url": "https://github.com/ollama/ollama"
+  },
+  {
+    "slug": "cytoscape/cytoscape.js", "description": "Graph theory library for interactive network visualization in JavaScript", "topics": ["graph", "visualization", "javascript"], "language": "JavaScript", "license": "MIT", "root_files": ["package.json", "README.md"], "source_url": "https://github.com/cytoscape/cytoscape.js"
+  },
+  {
+    "slug": "meshtastic/python", "description": "Python API and CLI for mesh radio messaging", "topics": ["meshtastic", "mesh", "radio", "networking", "cli"], "language": "Python", "license": "GPL-3.0-only", "root_files": ["pyproject.toml", "README.md"], "source_url": "https://github.com/meshtastic/python"
+  },
+  {
+    "slug": "open-policy-agent/opa", "description": "General purpose policy engine for fine-grained authorization decisions", "topics": ["policy", "security", "api", "trust"], "language": "Go", "license": "Apache-2.0", "root_files": ["README.md", "go.mod"], "source_url": "https://github.com/open-policy-agent/opa"
+  }
+]
