@@ -34,6 +34,9 @@ jobs:
           mkdir -p _site
           cp static/index.html _site/index.html
           touch _site/.nojekyll
+          mkdir -p _site/chimera
+          cp chimera/index.html _site/chimera/index.html
+          test -s _site/chimera/index.html
           python3 - <<'PY'
           from pathlib import Path
 
