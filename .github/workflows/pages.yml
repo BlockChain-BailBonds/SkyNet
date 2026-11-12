@@ -1,0 +1,95 @@
+name: Publish SkyNet Main to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: skynet-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout SkyNet
+        uses: actions/checkout@v4
+
+      - name: Verify source and tests
+        run: |
+          python3 -m unittest discover -s tests -v
+          sha256sum -c MANIFEST.sha256
+
+      - name: Prepare public static dashboard
+        run: |
+          mkdir -p _site
+          cp static/index.html _site/index.html
+          touch _site/.nojekyll
+          python3 - <<'PY'
+          from pathlib import Path
+
+          file = Path("_site/index.html")
+          content = file.read_text(encoding="utf-8")
+          if "<body>" not in content or "</body>" not in content or "SkyNet" not in content:
+              raise SystemExit("SkyNet static dashboard HTML is missing required elements")
+
+          notice = (
+              '<aside role="status" style="padding:12px 20px;'
+              'background:#3d2c12;color:#ffe6a2;border-bottom:1px solid #b48636;'
+              'font:600 13px system-ui">'
+              'PUBLIC GITHUB PAGES MODE — The geographic map and supported public '
+              'imagery layers are available. RuView, private sensor data, live '
+              'ingestion, operator invitations, and enrollment are NOT connected. '
+              'This public site cannot serve as the sensor backend.'
+              '</aside>'
+          )
+
+          script = """<script>
+          document.addEventListener('DOMContentLoaded', () => {
+            for (const id of [
+              'scan', 'refreshRuview', 'refreshEvidence', 'createInvite',
+              'smsCompose', 'copyInvite', 'siteRefresh'
+            ]) {
+              const control = document.getElementById(id);
+              if (control) {
+                control.disabled = true;
+                control.title = 'Requires an authenticated private SkyNet backend';
+              }
+            }
+            const observatory = document.getElementById('observatory');
+            if (observatory) {
+              observatory.removeAttribute('href');
+              observatory.setAttribute('aria-disabled', 'true');
+            }
+          });
+          </script>"""
+
+          file.write_text(
+              content.replace("<body>", "<body>\n" + notice, 1)
+                     .replace("</body>", script + "\n</body>", 1),
+              encoding="utf-8",
+          )
+          if not file.stat().st_size:
+              raise SystemExit("Built Pages artifact is empty")
+          PY
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
