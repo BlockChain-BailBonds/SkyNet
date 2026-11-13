@@ -2,6 +2,12 @@
 
 **Intellectual property by Matthew Blake Ward, in association with 918 Technologies.**
 
+## SPIN MVP
+
+The root `index.html` is now SkyNet Main: a responsive single-entry environmental awareness console with bounded official-feed snapshots, deterministic alert rules, a user-initiated local browser model runtime, evidence/health views, and SkyNet Pocket simulation. The preserved geospatial and consent dashboard remains at `static/index.html`.
+
+Run all 33 deterministic tests with `python3 -m unittest discover -s tests -v`. Refresh official USGS and NWS data locally with `python3 -m forecast.ingest`; this overwrites only compact files under `data/public/`. See `docs/architecture.md`, `docs/security.md`, and `docs/evidence-report.md` for limits. This system is for awareness/testing, not guaranteed life-safety delivery.
+
 A **local-first, read-only integration starter**, not a validated sensing product. SkyNet is the project name for the integration; RuView, government datasets, map layers and external service APIs retain their respective ownership and terms. See `IP_NOTICE.md` and `THIRD_PARTY_NOTICES.md`.
 
 ## Start
