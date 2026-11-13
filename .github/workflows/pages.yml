@@ -35,6 +35,8 @@ jobs:
           touch _site/.nojekyll
           test -s _site/index.html
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v4
         with: {path: _site}
       - uses: actions/deploy-pages@v4
