@@ -232,7 +232,7 @@ async function probePages(){
 function gatewayOrigin(){const raw=$("gateway").value.trim();try{const u=new URL(raw);if(u.protocol!=="https:"||u.username||u.password||u.search||u.hash||u.pathname!=="/")throw Error();return u.origin}catch{throw new Error("Enter a plain HTTPS gateway origin, without a path, credential, query or fragment")}}
 function route(origin,id){const s=$(id).value.trim();if(!s.startsWith("/")||s.startsWith("//")||s.includes("?")||s.includes("#")||s.includes("\\")||s.includes(".."))throw new Error("Route must be a simple absolute path beginning with /");const u=new URL(s,origin);if(u.origin!==origin)throw new Error("Cross-origin route rejected");return u.href}
 function credentialHeaders(){const s=$("credential").value;$("credential").value="";return s?{Authorization:"Bearer "+s}:{}}
-async function authGet(pathId){const origin=gatewayOrigin(),url=route(origin,pathId),head=credentialHeaders();return {data:await getJSON(url,9000,head),url}}
+async function authGet(pathId,sharedHeaders){const origin=gatewayOrigin(),url=route(origin,pathId),head=sharedHeaders||credentialHeaders();return {data:await getJSON(url,9000,head),url}}
 async function checkHealth(){
  let url="";try{
   const origin=gatewayOrigin();url=route(origin,"healthPath");
@@ -244,7 +244,7 @@ async function checkHealth(){
 async function checkWss(){
  let ws,timer;
  try{
-  const u=new URL($("wss").value.trim());if(u.protocol!=="wss:"||u.username||u.password||u.hash)throw new Error("Enter a WSS URL without credentials or fragment");
+  const u=new URL($("wss").value.trim());if(u.protocol!=="wss:"||u.username||u.password||u.hash||u.search)throw new Error("Enter a WSS URL without credentials, query or fragment");
   put("wss","UNVERIFIED","WSS opening transport; no payload will be sent",u.href);
   const result=await new Promise(resolve=>{
    let done=false;
@@ -263,10 +263,11 @@ async function checkConsent(){
  }catch(e){$("credential").value="";put("consentApi","BLOCKED","Cannot read consent-status route: "+String(e.message).slice(0,130));$("consentResults").textContent="No authenticated consent evidence received."}
 }
 async function checkDevices(){
+ const headers=credentialHeaders();
  for(const [field,id,label] of [["devicePath","enroll","Device enrollment/heartbeat"],["receiptPath","telemetry","Telemetry receipt"]]){
   if(!$(field).value.trim()){put(id,"BLOCKED","Exact documented read-only gateway route not configured");continue}
   try{
-   const {data,url}=await authGet(field);
+   const {data,url}=await authGet(field,headers);
    if(!data||typeof data!=="object")throw new Error("Unexpected JSON shape");
    put(id,"UNVERIFIED",label+" endpoint returned JSON, but receipt cryptography, exact-device provenance and consent have not been validated",url)
   }catch(e){$("credential").value="";put(id,"BLOCKED","No usable trusted receipt: "+String(e.message).slice(0,125))}
@@ -282,7 +283,7 @@ document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()
 document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(n=>n.classList.toggle("active",n===b));render()}));
 $("noteForm").addEventListener("submit",e=>{
  e.preventDefault();const title=$("noteTitle").value.trim(),comment=$("noteComment").value.trim();let u;
- try{u=new URL($("noteUrl").value.trim());if(u.protocol!=="https:"||u.username||u.password)throw Error()}catch{alert("Enter a valid HTTPS evidence URL without credentials.");return}
+ try{u=new URL($("noteUrl").value.trim());if(u.protocol!=="https:"||u.username||u.password||u.search||u.hash)throw Error()}catch{alert("Enter a valid HTTPS evidence URL without credentials.");return}
  if(!title)return;
  notes.unshift({title,comment,url:u.href,at:now(),status:"UNVERIFIED"});$("noteForm").reset();entry("Operator reference","UNVERIFIED","Manual reference added; evidence not independently validated",u.href);render()
 });
