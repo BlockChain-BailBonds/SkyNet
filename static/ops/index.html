@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>SkyNet Main | Deployment Evidence Console</title>
+<style>
+:root{--bg:#090b0e;--panel:#11151a;--panel2:#171c22;--line:#283039;--text:#e9edf2;--muted:#9aa4b0;--gold:#e6b64b;--gold2:#ae842e;--green:#53d7a5;--red:#ff747a;--orange:#f2ad5d;--blue:#77baff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 76% -28%,#48371940,transparent 52%),var(--bg);font:14px/1.48 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}a{color:#dfbd73;text-decoration:none}a:hover{text-decoration:underline}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.shell{display:grid;grid-template-columns:228px minmax(0,1fr);min-height:100vh}.sidebar{border-right:1px solid var(--line);background:#0d1014;display:flex;flex-direction:column;gap:22px;padding:26px 16px;position:sticky;top:0;height:100vh}.brand{display:flex;align-items:center;gap:11px;padding:2px 10px 20px;border-bottom:1px solid var(--line)}.mark{display:grid;place-items:center;width:39px;height:39px;border:1px solid var(--gold2);border-radius:11px;font-size:21px;color:var(--gold);background:#e6b64b12}.brand b{letter-spacing:.14em;font-size:18px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.14em}
+.nav{display:grid;gap:6px}.nav button{background:transparent;border:1px solid transparent;color:#a9b2bd;border-radius:9px;text-align:left;padding:12px 14px;font-weight:550}.nav button[aria-current="page"]{background:#e6b64b15;color:var(--gold);border-color:#e6b64b3d}.nav button:hover{background:#ffffff0b}.sidefoot{margin-top:auto;padding:14px 10px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}.sidefoot b{color:#d8c18a}
+.main{max-width:1550px;width:100%;margin:0 auto;padding:28px 30px 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:27px}.eyebrow{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}h1{font-size:clamp(24px,3vw,36px);line-height:1.16;margin:7px 0 8px;letter-spacing:-.038em}h2{font-size:17px;letter-spacing:-.015em;margin:0}h3{font-size:14px;margin:0}.sub{color:var(--muted);max-width:750px;margin:0}.topActions{display:flex;gap:10px;flex-wrap:wrap}.btn{background:#222a32;border:1px solid #414a54;color:var(--text);border-radius:9px;padding:10px 14px;font-weight:700;white-space:nowrap}.btn:hover{background:#2b343d}.btn.primary{background:var(--gold);color:#16110a;border-color:var(--gold)}.btn.primary:hover{background:#f3c966}.btn.small{padding:7px 10px;font-size:12px}.hero{display:flex;justify-content:space-between;gap:16px;border:1px solid #665023;background:linear-gradient(112deg,#302412,#14181c 70%);border-radius:15px;padding:19px 22px;margin-bottom:19px}.hero b{color:#ffe09a}.hero p{margin:5px 0 0;color:#c3bcae;max-width:780px}.hero a{white-space:nowrap;align-self:center}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:20px}.metric,.card{border:1px solid var(--line);background:linear-gradient(150deg,#171b20,#101419);border-radius:13px}.metric{padding:16px 18px}.metric .value{font-size:29px;font-weight:780;font-variant-numeric:tabular-nums;letter-spacing:-.04em;margin:5px 0 3px}.metric .label{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);font-weight:700}.metric .hint{font-size:11px;color:var(--muted)}
+.columns{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(290px,1fr);gap:17px}.stack{display:grid;gap:17px;align-content:start}.card{padding:19px}.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}.hint{font-size:12px;color:var(--muted)}.badge{display:inline-flex;align-items:center;gap:5px;border:1px solid;border-radius:100px;padding:4px 9px;font-size:10px;font-weight:800;letter-spacing:.035em}.VERIFIED{color:var(--green);border-color:#53d7a54d;background:#53d7a510}.UNVERIFIED{color:#aeb8c2;border-color:#aeb8c238;background:#aeb8c20c}.BLOCKED{color:var(--orange);border-color:#f2ad5d44;background:#f2ad5d0d}.FAILED{color:var(--red);border-color:#ff747a44;background:#ff747a12}.rowline{padding:13px 0;border-top:1px solid #29313a;display:grid;grid-template-columns: minmax(0,1fr) auto;gap:10px}.rowline:first-child{border-top:0}.rowline strong{font-size:13px}.rowline p{margin:4px 0;color:var(--muted);font-size:12px;overflow-wrap:anywhere}.rowline small{display:block;color:#75818c;font-size:10px;margin-top:5px}.source{font-size:11px}.stateCol{text-align:right;min-width:92px}.stateCol .source{display:block;margin-top:9px}.divider{height:1px;background:var(--line);margin:15px 0}.next{background:#33271454;border:1px solid #6b502b;border-radius:10px;padding:14px}.next strong{color:#efc776}.next p{margin:8px 0 0;color:#c6c2b9}.stepNum{color:var(--gold);font-size:12px}.activity{display:grid;gap:12px;max-height:475px;overflow:auto}.evt{border-left:2px solid #635030;padding-left:11px}.evt .time{color:#85909a;font-size:10px}.evt p{margin:3px 0 0;font-size:12px;color:#c4cbd1}
+.view{display:none}.view.active{display:block}.sectionTitle{margin:0 0 14px}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:17px}.field{display:grid;gap:7px;margin:12px 0}.field label{font-size:11px;font-weight:800;color:#c2cad2;text-transform:uppercase;letter-spacing:.06em}.field input,.field select,.field textarea{background:#0a0d11;color:var(--text);border:1px solid #37414b;border-radius:8px;padding:11px;width:100%;min-width:0}.field input::placeholder,.field textarea::placeholder{color:#68737f}.field textarea{min-height:87px;resize:vertical}.note{font-size:12px;line-height:1.5;color:var(--muted)}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.actionbox{padding:17px;border:1px solid var(--line);border-radius:11px;background:#0b0f14;margin-bottom:13px}.actionbox h3{margin-bottom:6px}.actionbox p{margin:4px 0;color:var(--muted);font-size:12px}.sep{margin:16px 0 10px;border:0;border-top:1px solid var(--line)}.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}.filter{padding:7px 11px;border-radius:8px;background:#1a2027;color:#adb9c3;border:1px solid #343c45}.filter.active{background:#e6b64b1b;border-color:var(--gold2);color:var(--gold)}.legend{display:grid;gap:9px}.legend div{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #263039;padding:9px 0}.legend div:last-child{border:0}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;overflow-wrap:anywhere;color:#acb7c3}.footer{font-size:11px;color:#788590;margin-top:27px;border-top:1px solid var(--line);padding-top:16px}.warn{color:var(--orange)}.ok{color:var(--green)}.bad{color:var(--red)}.details{margin-top:12px;color:var(--muted);font-size:12px}.details code{color:#dfbf78}.smallprint{font-size:11px;color:#85909b;margin:9px 0}.scroll{overflow-x:auto}
+@media(max-width:1030px){.columns{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.twocol{grid-template-columns:1fr}}
+@media(max-width:750px){.shell{display:block}.sidebar{height:auto;position:relative;padding:11px 13px;gap:9px}.brand{padding:4px;border:0}.nav{display:flex;overflow-x:auto}.nav button{white-space:nowrap;padding:8px 10px}.sidefoot{display:none}.main{padding:20px 15px 35px}.top{display:block}.topActions{margin-top:15px}.hero{display:block}.hero a{display:inline-block;margin-top:13px}.metrics{gap:9px}.metric{padding:13px}.metric .value{font-size:24px}}
+@media(prefers-reduced-motion:no-preference){.btn,.nav button{transition:background .14s ease}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+ <div class="brand"><div class="mark" aria-hidden="true">◈</div><div><b>SKYNET</b><small>918 TECHNOLOGIES</small></div></div>
+ <nav class="nav" aria-label="Dashboard views">
+  <button type="button" data-tab="overview" aria-current="page">◉ &nbsp; Overview</button>
+  <button type="button" data-tab="network">⌁ &nbsp; Connectivity</button>
+  <button type="button" data-tab="pocket">▣ &nbsp; Pocket & consent</button>
+  <button type="button" data-tab="evidence">≋ &nbsp; Evidence ledger</button>
+  <button type="button" data-tab="tests">◇ &nbsp; Test queue</button>
+ </nav>
+ <div class="sidefoot"><b>READ-ONLY OPERATOR CONSOLE</b><p>GitHub Pages is a static frontend. All sensor ingestion must happen at a separate authenticated gateway.</p><p>No credentials or device payloads are retained by this page.</p></div>
+</aside>
+<main class="main">
+ <header class="top">
+  <div><div class="eyebrow">SkyNet Main / deployment assurance</div><h1>Deployment evidence console</h1><p class="sub">Evidence-first operations: source CI ≠ published frontend ≠ secure gateway ≠ authenticated telemetry ≠ physical sensing.</p></div>
+  <div class="topActions"><button class="btn" id="export">⇩ Export ledger</button><button class="btn primary" id="refresh">↻ Refresh public checks</button></div>
+ </header>
+ <div class="hero"><div><div class="eyebrow">Critical acceptance boundary</div><b>Do not infer live ingestion from a working GitHub Pages site.</b><p>Even if the HTML loads and CI passes, enrollment, consent, signed receipts, fresh heartbeats, and exact-device sensing remain separate, evidence-gated milestones. Missing evidence never becomes success.</p></div><a href="https://github.com/BlockChain-BailBonds/SkyNet" target="_blank" rel="noopener noreferrer">Repository ↗</a></div>
+ <section class="metrics" aria-label="Status totals">
+  <div class="metric"><div class="label">Verified checks</div><div class="value ok" id="nVerified">0</div><div class="hint">Exact surface only</div></div>
+  <div class="metric"><div class="label">Unverified</div><div class="value" id="nUnverified">0</div><div class="hint">Insufficient provenance</div></div>
+  <div class="metric"><div class="label">Blocked</div><div class="value warn" id="nBlocked">0</div><div class="hint">No access or prerequisite</div></div>
+  <div class="metric"><div class="label">Failed</div><div class="value bad" id="nFailed">0</div><div class="hint">Observed failed acceptance</div></div>
+ </section>
+ <section class="view active" id="view-overview">
+  <div class="columns"><div class="stack">
+   <article class="card"><div class="head"><h2>Deployment acceptance chain</h2><span class="hint" id="lastRefresh">Not checked</span></div><div id="milestones"></div></article>
+   <article class="card"><div class="head"><h2>Evidence freshness</h2><span class="hint">Independent clocks</span></div><div id="freshness"></div></article>
+  </div><div class="stack">
+   <article class="card"><div class="head"><h2>Smallest safe next test</h2><span class="badge BLOCKED">NO WRITES</span></div><div class="next"><div class="stepNum" id="nextRank">GATE 01</div><strong id="nextTitle">Review source</strong><p id="nextDesc">Read checks and validate prerequisites without deploying, enrolling or flashing.</p><p class="smallprint"><a id="nextLink" target="_blank" rel="noopener noreferrer" href="https://github.com/BlockChain-BailBonds/SkyNet/actions">Open source evidence ↗</a></p></div><div class="divider"></div><h3>Acceptance policy</h3><p class="note">VERIFIED applies only to a particular test or source assertion and its time. A successful WebSocket handshake is not a sensor event. A receipt returned by an unverified gateway is not proof of calibrated CSI/camera capture.</p></article>
+   <article class="card"><div class="head"><h2>Operator event trace</h2><span class="hint">This tab only</span></div><div class="activity" id="activity" aria-live="polite"></div></article>
+  </div></div>
+ </section>
+ <section class="view" id="view-network">
+  <h2 class="sectionTitle">Public and gateway connectivity</h2>
+  <div class="twocol">
+   <article class="card"><div class="head"><h2>Public surfaces</h2><span class="badge UNVERIFIED">No credentials</span></div><p class="note">Direct browser requests to the official GitHub API and expected Pages route. A CORS denial is indeterminate, not proof that the site is down.</p><div id="publicChecks"></div><div class="actions"><button class="btn" id="refresh2">↻ Recheck GitHub & Pages</button><a href="https://github.com/BlockChain-BailBonds/SkyNet/actions/workflows/pages.yml" target="_blank" rel="noopener noreferrer">Pages workflow ↗</a></div></article>
+   <article class="card"><div class="head"><h2>Independent HTTPS / WSS gateway</h2><span class="badge BLOCKED">Operator configured</span></div>
+    <div class="field"><label for="gateway">Gateway HTTPS origin</label><input id="gateway" autocomplete="off" spellcheck="false" inputmode="url" placeholder="https://gateway.example.org" /></div>
+    <div class="field"><label for="healthPath">Health route (repository uses /api/health)</label><input id="healthPath" value="/api/health" autocomplete="off" spellcheck="false"/></div>
+    <div class="field"><label for="wss">Public WebSocket endpoint</label><input id="wss" autocomplete="off" spellcheck="false" inputmode="url" placeholder="wss://gateway.example.org/ws/health"/></div>
+    <div class="field"><label for="credential">Optional operator bearer credential — never saved</label><input id="credential" type="password" autocomplete="off" placeholder="Entered at check time only"/></div>
+    <div class="actions"><button class="btn primary" id="checkHealth">Probe HTTPS health</button><button class="btn" id="checkWss">Probe WSS handshake</button></div>
+    <p class="smallprint">Read-only GET and WebSocket handshake. No telemetry is sent. Cross-origin requests require gateway CORS support. The bearer token is cleared immediately after each HTTPS check and is never used for WSS.</p>
+    <div id="gatewayChecks"></div>
+   </article>
+  </div>
+ </section>
+ <section class="view" id="view-pocket">
+  <h2 class="sectionTitle">SkyNet Pocket / ESP32 evidence</h2>
+  <div class="twocol">
+   <article class="card"><div class="head"><h2>Consent & authenticated status</h2><span class="badge UNVERIFIED">Hardware acceptance separate</span></div>
+    <p class="note">The repository documents <code>/api/sites/status</code> for consenting phone-motion sites, which are <b>not</b> ESP32 Pocket nodes. API availability alone does not establish consent, physical location, or an enrolled device.</p>
+    <div class="field"><label for="consentPath">Authorized site-status route</label><input id="consentPath" value="/api/sites/status" autocomplete="off" spellcheck="false"/></div>
+    <div class="actions"><button class="btn" id="checkConsent">Read consent endpoint</button></div><div id="consentResults"></div>
+    <div class="divider"></div><h3>Required consent record</h3><p class="note">Scope, operator/site identity, opt-in timestamp, validity period, withdrawal/revocation mechanism, retention policy and permission to transmit. A copied invitation URL is not proof of continuing consent.</p>
+   </article>
+   <article class="card"><div class="head"><h2>Pocket gateway receipts</h2><span class="badge BLOCKED">No endpoint assumed</span></div><p class="note">Enter real, documented <b>read-only</b> routes from your running gateway. The repository does not establish a production device or receipt API, so none is guessed.</p>
+    <div class="field"><label for="devicePath">Device enrollment/heartbeat route</label><input id="devicePath" autocomplete="off" spellcheck="false" placeholder="/your/documented/device/status"/></div>
+    <div class="field"><label for="receiptPath">Authenticated telemetry receipts route</label><input id="receiptPath" autocomplete="off" spellcheck="false" placeholder="/your/documented/receipt/status"/></div>
+    <div class="actions"><button class="btn primary" id="checkDevices">Probe read-only routes</button></div><div id="deviceResults"></div>
+    <div class="divider"></div><h3>What counts as direct device evidence?</h3><p class="note">Exact board ID and firmware hash, enrolled public-key registration, signed nonce/timestamp acceptance, replay verification, consent ID, gateway receipt ID, and fresh heartbeat linked to that device. Camera/CSI/RuView sensing additionally needs physical capture/calibration logs.</p>
+   </article>
+  </div>
+  <article class="card" style="margin-top:17px"><div class="head"><h2>Explicitly withheld claims</h2><span class="hint">Never auto-promoted by HTTP 200</span></div><div id="deviceMilestones"></div></article>
+ </section>
+ <section class="view" id="view-evidence">
+  <div class="head"><h2>Evidence ledger</h2><div class="actions" style="margin:0"><button class="btn small" id="clearNotes">Clear operator notes</button><button class="btn small" id="export2">⇩ Export JSON</button></div></div>
+  <div class="card"><p class="note">Observations are generated by this browser session. Operator notes stay UNVERIFIED until independently checked. No device locations, API responses, tokens or raw telemetry are stored in the ledger. Export JSON before closing the page; there is no background monitor.</p>
+   <div class="filters" id="filters"><button class="filter active" data-filter="ALL">All</button><button class="filter" data-filter="VERIFIED">Verified</button><button class="filter" data-filter="UNVERIFIED">Unverified</button><button class="filter" data-filter="BLOCKED">Blocked</button><button class="filter" data-filter="FAILED">Failed</button></div><div id="ledgerRows"></div>
+  </div>
+  <div class="twocol" style="margin-top:17px"><article class="card"><h2>Attach an operator evidence reference</h2><form id="noteForm"><div class="field"><label for="noteTitle">Finding</label><input id="noteTitle" maxlength="140" required placeholder="e.g. Gateway ingress receipt reviewed"/></div><div class="field"><label for="noteUrl">Exact source URL (HTTPS)</label><input id="noteUrl" type="url" required placeholder="https://github.com/.../actions/runs/..."/></div><div class="field"><label for="noteComment">Brief redacted context</label><textarea id="noteComment" maxlength="800" placeholder="Evidence type, observed time, device alias, result — no secrets"></textarea></div><button class="btn primary" type="submit">Add unverified reference</button></form></article>
+  <article class="card"><h2>Status semantics</h2><div class="legend"><div><span class="badge VERIFIED">VERIFIED</span><span class="note">Direct narrow check passed</span></div><div><span class="badge UNVERIFIED">UNVERIFIED</span><span class="note">Not checked / source assertion only</span></div><div><span class="badge BLOCKED">BLOCKED</span><span class="note">Access / prerequisite / CORS obstacle</span></div><div><span class="badge FAILED">FAILED</span><span class="note">Directly observed check failure</span></div></div><p class="smallprint">Stale evidence is flagged and is not counted as currently verified. The source must remain retrievable for independent review.</p></article></div>
+ </section>
+ <section class="view" id="view-tests">
+  <h2 class="sectionTitle">Smallest-first correction queue</h2><div class="card" id="queue"></div>
+  <div class="twocol" style="margin-top:17px">
+   <article class="card"><h2>Read-only regression checklist</h2><div class="legend"><div>Repository default branch and source SHA <span class="badge UNVERIFIED">Probe</span></div><div>CI vs Pages workflow results <span class="badge UNVERIFIED">Compare</span></div><div>Published HTML identity & CORS <span class="badge UNVERIFIED">Probe</span></div><div>TLS health response & content type <span class="badge UNVERIFIED">Probe</span></div><div>WSS open vs authenticated delivery <span class="badge UNVERIFIED">Separate</span></div><div>Device receipt clock, nonce, signature <span class="badge UNVERIFIED">Evidence</span></div><div>Consent and revocation in force <span class="badge UNVERIFIED">Evidence</span></div></div></article>
+   <article class="card"><h2>Evidence boundaries</h2><p class="note">Public probes may return VERIFIED for HTTP transport or a GitHub workflow only. They cannot prove signed device receipts, non-simulated CSI, camera capture, actual RuView measurements, calibration or location-specific detection.</p><p class="note">This dashboard performs no flashing, provisioning, enrollment, network scanning, SMS sending, mutation to GitHub, deployment trigger or telemetry upload. Any operator-supplied authentication is sent only to the selected HTTPS origin.</p><p class="mono">© 2026 Matthew Blake Ward · 918 Technologies · original SkyNet integration only; third-party rights retained.</p></article>
+  </div>
+ </section>
+ <footer class="footer"><span id="clock">Session not started</span> · <a href="https://github.com/BlockChain-BailBonds/SkyNet/blob/main/docs/device-enrollment.md" target="_blank" rel="noopener noreferrer">Device enrollment specification</a> · <a href="https://github.com/BlockChain-BailBonds/SkyNet/blob/main/docs/deployment.md" target="_blank" rel="noopener noreferrer">Deployment guide</a> · This interface is not a life-safety alerting service.</footer>
+</main>
+</div>
+<script>
+(function(){
+"use strict";
+const ROOT="https://github.com/BlockChain-BailBonds/SkyNet";
+const API="https://api.github.com/repos/BlockChain-BailBonds/SkyNet";
+const PAGE="https://blockchain-bailbonds.github.io/SkyNet/";
+const $=id=>document.getElementById(id);
+const now=()=>new Date().toISOString();
+const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const stamp=s=>s?new Date(s).toLocaleString():"No observation";
+const states=[
+ {id:"repo",group:"source",name:"Repository metadata",hint:"Default branch, owner and HEAD",url:ROOT,ttl:86400000},
+ {id:"ci",group:"source",name:"GitHub source CI",hint:"Most recent source-validation workflow",url:ROOT+"/actions/workflows/ci.yml",ttl:86400000},
+ {id:"pagesJob",group:"deploy",name:"Pages publishing workflow",hint:"Workflow success is not endpoint availability",url:ROOT+"/actions/workflows/pages.yml",ttl:86400000},
+ {id:"pages",group:"deploy",name:"Public Pages HTTP and HTML",hint:"Published root; separate from build outcome",url:PAGE,ttl:900000},
+ {id:"health",group:"gateway",name:"Gateway HTTPS / API health",hint:"Operator-chosen remote origin",url:ROOT+"/blob/main/README.md",ttl:120000},
+ {id:"wss",group:"gateway",name:"Public WSS handshake",hint:"WebSocket transport only",url:ROOT+"/blob/main/docs/architecture.md",ttl:120000},
+ {id:"consentApi",group:"pocket",name:"Consent-status API reachability",hint:"Phone-motion route, not Pocket enrollment",url:ROOT+"/blob/main/SMS_ENROLLMENT_GUIDE.md",ttl:120000},
+ {id:"consent",group:"pocket",name:"Valid sensor consent receipts",hint:"Signed/traceable opt-in and revocation evidence",url:ROOT+"/blob/main/docs/device-enrollment.md",ttl:120000},
+ {id:"enroll",group:"pocket",name:"Pocket ESP32 exact-device enrollment",hint:"Registered public key, firmware hash and identity",url:ROOT+"/blob/main/docs/device-enrollment.md",ttl:120000},
+ {id:"telemetry",group:"pocket",name:"Authenticated telemetry ingress",hint:"Signed nonce/timestamp acceptance and gateway receipt",url:ROOT+"/blob/main/docs/device-enrollment.md",ttl:120000},
+ {id:"heartbeats",group:"pocket",name:"Fresh device heartbeats",hint:"Acknowledged by trusted gateway, within freshness window",url:ROOT+"/blob/main/docs/device-enrollment.md",ttl:180000},
+ {id:"ruview",group:"pocket",name:"Physical RuView/CSI & camera validation",hint:"No simulation or API reachability substitution",url:ROOT+"/blob/main/docs/evidence-report.md",ttl:180000}
+];
+const m=new Map(states.map(x=>[x.id,{...x,status:"UNVERIFIED",detail:"Not independently checked",observed:null}]));
+let events=[], notes=[],filter="ALL",busy=false;
+function report(msg){$("clock").textContent="Session time: "+new Date().toLocaleString()+" · "+msg}
+function entry(label,status,detail,source){events.unshift({time:now(),label,status,detail,source:source||""});if(events.length>120)events.pop();renderActivity()}
+function put(id,status,detail,source,at){
+ const o=m.get(id);if(!o)return;
+ o.status=status;o.detail=detail;o.observed=at||now();if(source)o.url=source;
+ entry(o.name,status,detail,o.url);render();
+}
+function current(x){return x.status==="VERIFIED" && x.observed && Date.now()-Date.parse(x.observed)>x.ttl?"UNVERIFIED":x.status}
+function stale(x){return Boolean(x.observed && Date.now()-Date.parse(x.observed)>x.ttl)}
+function badge(status){return '<span class="badge '+safe(status)+'">'+safe(status)+'</span>'}
+function link(url,label){
+ try{let u=new URL(url);if(u.protocol!=="https:")return "";return '<a class="source" target="_blank" rel="noopener noreferrer" href="'+safe(u.href)+'">'+safe(label||"Source ↗")+'</a>'}catch{return ""}
+}
+function statusRow(x){let s=current(x);return '<div class="rowline"><div><strong>'+safe(x.name)+'</strong><p>'+safe(x.detail)+' '+(stale(x)?'<b class="warn">· STALE</b>':'')+'</p><small>'+safe(stamp(x.observed))+' · '+safe(x.hint)+'</small></div><div class="stateCol">'+badge(s)+link(x.url,"Evidence ↗")+'</div></div>'}
+function renderActivity(){const e=$("activity");e.innerHTML=events.length?events.slice(0,14).map(x=>'<div class="evt"><div class="time">'+safe(stamp(x.time))+' · '+safe(x.status)+'</div><strong>'+safe(x.label)+'</strong><p>'+safe(x.detail)+'</p></div>').join(""):'<p class="note">Live public checks begin on opening this page. Private checks are operator-triggered.</p>'}
+function next(){
+ const g=m.get("pagesJob"),p=m.get("pages"),h=m.get("health"),w=m.get("wss");
+ let v;
+ if(g.status==="FAILED")v=["01","Resolve GitHub Pages enablement","The latest observed Pages job failed. Inspect configure-pages logs and have an authorized repository administrator initialize Pages with GitHub Actions as source. Do not change device firmware.",g.url];
+ else if(current(g)!=="VERIFIED")v=["01","Inspect publishing workflow","Verify the current Pages job and GitHub Pages configuration before claiming frontend delivery.",g.url];
+ else if(current(p)!=="VERIFIED")v=["02","Verify published HTML","Request the public root and validate that a real SkyNet page is served. A successful workflow alone is insufficient.",p.url];
+ else if(current(h)!=="VERIFIED")v=["03","Probe independent HTTPS gateway","Enter the actual, authorized gateway origin and run a read-only /api/health check.",ROOT+"/blob/main/docs/deployment.md"];
+ else if(current(w)!=="VERIFIED")v=["04","Probe secure WebSocket transport","Check WSS handshake only; do not send fabricated telemetry or call an open socket ingestion.",ROOT+"/blob/main/docs/architecture.md"];
+ else v=["05","Obtain signed consent and device receipts","Verify enrollment public keys, revocation/consent records, one authenticated message acknowledgment and a fresh heartbeat from the exact ESP32.",ROOT+"/blob/main/docs/device-enrollment.md"];
+ $("nextRank").textContent="GATE "+v[0];$("nextTitle").textContent=v[1];$("nextDesc").textContent=v[2];$("nextLink").href=v[3];
+ const queue=[v,["NEXT","Verify gateway replay rejection","With a consented test device and approved test plan, review existing replay rejection logs and signature/nonce verification; no write from this console.",ROOT+"/blob/main/docs/device-enrollment.md"],["NEXT","Verify physical sensing separately","Review exact-board serial logs, camera/CSI hardware traces and calibration. Simulators cannot graduate this gate.",ROOT+"/blob/main/docs/evidence-report.md"]];
+ $("queue").innerHTML=queue.map((x,i)=>'<div class="rowline"><div><strong><span class="stepNum">'+safe(x[0])+'</span> · '+safe(x[1])+'</strong><p>'+safe(x[2])+'</p></div><div class="stateCol">'+link(x[3],"Procedure ↗")+'</div></div>').join("")
+}
+function render(){
+ const counts={VERIFIED:0,UNVERIFIED:0,BLOCKED:0,FAILED:0};states.forEach(x=>counts[current(m.get(x.id))]++);
+ Object.entries(counts).forEach(([k,v])=>$(("n"+k[0]+k.slice(1).toLowerCase())).textContent=v);
+ const a=states.map(x=>m.get(x.id));
+ $("milestones").innerHTML=a.map(statusRow).join("");
+ $("publicChecks").innerHTML=a.filter(x=>x.group==="source"||x.group==="deploy").map(statusRow).join("");
+ $("gatewayChecks").innerHTML=a.filter(x=>x.group==="gateway").map(statusRow).join("");
+ $("deviceMilestones").innerHTML=a.filter(x=>x.group==="pocket").map(statusRow).join("");
+ $("freshness").innerHTML=a.filter(x=>["ci","pagesJob","pages","health","telemetry","heartbeats"].includes(x.id)).map(x=>'<div class="rowline"><div><strong>'+safe(x.name)+'</strong><p>'+safe(x.observed?((stale(x)?"Stale · ":"Fresh observation · ")+stamp(x.observed)):"No receipt or live check recorded")+'</p></div><div class="stateCol">'+badge(current(x))+'</div></div>').join("");
+ const ledger=a.filter(x=>filter==="ALL"||current(x)===filter);
+ $("ledgerRows").innerHTML=ledger.map(statusRow).join("")+notes.filter(n=>filter==="ALL"||filter==="UNVERIFIED").map(n=>'<div class="rowline"><div><strong>Operator reference · '+safe(n.title)+'</strong><p>'+safe(n.comment||"Reference submitted; not independently verified")+'</p><small>'+safe(stamp(n.at))+'</small></div><div class="stateCol">'+badge("UNVERIFIED")+link(n.url,"Source ↗")+'</div></div>').join("");
+ next();report("No background monitoring");
+}
+function setBusy(flag){busy=flag;["refresh","refresh2"].forEach(id=>$(id).disabled=flag)}
+async function getJSON(url,timeout=10000,headers={}){
+ const ac=new AbortController(),t=setTimeout(()=>ac.abort(),timeout);
+ try{
+  const response=await fetch(url,{method:"GET",cache:"no-store",redirect:"error",headers:{Accept:"application/json",...headers},signal:ac.signal});
+  if(!response.ok)throw new Error("HTTP "+response.status);
+  const body=await response.text();if(body.length>2000000)throw new Error("Body size exceeds bounded check");
+  let json;try{json=JSON.parse(body)}catch{throw new Error("Response is not JSON")}
+  return json;
+ }finally{clearTimeout(t)}
+}
+async function fetchPublic(){
+ if(busy)return;setBusy(true);
+ $("lastRefresh").textContent="Public checks in progress";
+ const reqs=[
+  getJSON(API),
+  getJSON(API+"/commits/main"),
+  getJSON(API+"/actions/runs?per_page=30"),
+  probePages()
+ ];
+ const [meta,head,runs]=await Promise.allSettled(reqs);
+ if(meta.status==="fulfilled"&&meta.value.full_name==="BlockChain-BailBonds/SkyNet"&&head.status==="fulfilled"&&head.value.sha){
+  put("repo","VERIFIED","Public repository "+meta.value.default_branch+" · HEAD "+head.value.sha.slice(0,12),head.value.html_url||ROOT)
+ }else put("repo","BLOCKED","Could not jointly verify repository metadata and main HEAD; public API may be rate-limited",ROOT);
+ if(runs.status==="fulfilled"&&Array.isArray(runs.value.workflow_runs)){
+  const a=runs.value.workflow_runs;
+  const find=n=>a.find(x=>x.name===n);
+  const evalRun=(id,x)=>{
+   if(!x){put(id,"UNVERIFIED","No matching workflow in most recent 30 runs",ROOT+"/actions");return}
+   const url=x.html_url||ROOT+"/actions";
+   const age=Date.now()-Date.parse(x.updated_at||x.created_at);
+   const label="Run "+x.id+" · "+(x.conclusion||x.status)+" · "+stamp(x.updated_at);
+   if(x.status!=="completed")put(id,"BLOCKED","Workflow still "+x.status+" · "+label,url);
+   else if(x.conclusion==="success")put(id,age>86400000?"UNVERIFIED":"VERIFIED",(age>86400000?"Stale success · ":"")+label,url,x.updated_at);
+   else if(x.conclusion==="failure")put(id,"FAILED",label,url,x.updated_at);
+   else put(id,"UNVERIFIED","No successful conclusion · "+label,url,x.updated_at)
+  };
+  evalRun("ci",find("SkyNet Source Validation"));
+  evalRun("pagesJob",find("Publish SkyNet Main to GitHub Pages"));
+ }else{
+  put("ci","BLOCKED","GitHub Actions metadata unavailable; check API, rate limit or network",ROOT+"/actions");
+  put("pagesJob","BLOCKED","GitHub Actions metadata unavailable; do not infer publishing",ROOT+"/actions/workflows/pages.yml")
+ }
+ $("lastRefresh").textContent="Checked "+new Date().toLocaleTimeString();setBusy(false)
+}
+async function probePages(){
+ const ac=new AbortController(), t=setTimeout(()=>ac.abort(),9000);
+ try{
+  const res=await fetch(PAGE,{method:"GET",cache:"no-store",redirect:"follow",signal:ac.signal});
+  if(!res.ok){put("pages","FAILED","Public HTTP check returned "+res.status+" (this does not prove why the deployment failed)",PAGE);return}
+  const type=res.headers.get("content-type")||"";
+  if(!type.toLowerCase().includes("text/html")){put("pages","FAILED","Expected HTML; received "+type,PAGE);return}
+  const body=(await res.text()).slice(0,20000);
+  if(!/skynet/i.test(body)){put("pages","UNVERIFIED","HTTP 2xx HTML is reachable, but SkyNet page identity was not confirmed",PAGE);return}
+  put("pages","VERIFIED","HTTP "+res.status+" returned SkyNet-identifiable HTML (NOT live ingestion)",PAGE)
+ }catch(e){put("pages","BLOCKED","No readable browser response ("+(e.name==="AbortError"?"timeout":"network/CORS error")+"); page state is indeterminate",PAGE)}
+ finally{clearTimeout(t)}
+}
+function gatewayOrigin(){const raw=$("gateway").value.trim();try{const u=new URL(raw);if(u.protocol!=="https:"||u.username||u.password||u.search||u.hash||u.pathname!=="/")throw Error();return u.origin}catch{throw new Error("Enter a plain HTTPS gateway origin, without a path, credential, query or fragment")}}
+function route(origin,id){const s=$(id).value.trim();if(!s.startsWith("/")||s.startsWith("//")||s.includes("?")||s.includes("#")||s.includes("\\")||s.includes(".."))throw new Error("Route must be a simple absolute path beginning with /");const u=new URL(s,origin);if(u.origin!==origin)throw new Error("Cross-origin route rejected");return u.href}
+function credentialHeaders(){const s=$("credential").value;$("credential").value="";return s?{Authorization:"Bearer "+s}:{}}
+async function authGet(pathId){const origin=gatewayOrigin(),url=route(origin,pathId),head=credentialHeaders();return {data:await getJSON(url,9000,head),url}}
+async function checkHealth(){
+ let url="";try{
+  const origin=gatewayOrigin();url=route(origin,"healthPath");
+  const {data}=await authGet("healthPath");
+  if(!data||typeof data!=="object"||Array.isArray(data))throw new Error("Gateway did not return a JSON object");
+  put("health","VERIFIED","HTTPS GET yielded JSON object. API reachable; auth, ingestion and sensor operation NOT established",url);
+ }catch(e){$("credential").value="";put("health","BLOCKED","Probe inconclusive or rejected: "+String(e.message).slice(0,120),url||ROOT+"/blob/main/README.md")}
+}
+async function checkWss(){
+ let ws,timer;
+ try{
+  const u=new URL($("wss").value.trim());if(u.protocol!=="wss:"||u.username||u.password||u.hash)throw new Error("Enter a WSS URL without credentials or fragment");
+  put("wss","UNVERIFIED","WSS opening transport; no payload will be sent",u.href);
+  const result=await new Promise(resolve=>{
+   let done=false;
+   function finish(kind){if(done)return;done=true;clearTimeout(timer);try{ws&&ws.close(1000,"probe complete")}catch{}resolve(kind)}
+   timer=setTimeout(()=>finish("timeout"),6500);
+   try{ws=new WebSocket(u.href);ws.onopen=()=>finish("open");ws.onerror=()=>finish("error");ws.onclose=()=>finish("close")}catch{finish("error")}
+  });
+  if(result==="open")put("wss","VERIFIED","WSS transport handshake succeeded; no authentication or ingestion tested",u.href);
+  else put("wss","BLOCKED","WSS handshake not established ("+result+"); endpoint, TLS, auth or network may be responsible",u.href)
+ }catch(e){put("wss","BLOCKED",String(e.message).slice(0,160),ROOT+"/blob/main/docs/architecture.md")}
+}
+async function checkConsent(){
+ try{const {data,url}=await authGet("consentPath");if(!data||typeof data!=="object")throw new Error("Unexpected JSON shape");
+  put("consentApi","VERIFIED","Authorized route returned JSON. Consent validity and phone-site count NOT independently established",url);
+  $("consentResults").textContent="Endpoint responded with JSON. No consent receipts have been validated.";
+ }catch(e){$("credential").value="";put("consentApi","BLOCKED","Cannot read consent-status route: "+String(e.message).slice(0,130));$("consentResults").textContent="No authenticated consent evidence received."}
+}
+async function checkDevices(){
+ for(const [field,id,label] of [["devicePath","enroll","Device enrollment/heartbeat"],["receiptPath","telemetry","Telemetry receipt"]]){
+  if(!$(field).value.trim()){put(id,"BLOCKED","Exact documented read-only gateway route not configured");continue}
+  try{
+   const {data,url}=await authGet(field);
+   if(!data||typeof data!=="object")throw new Error("Unexpected JSON shape");
+   put(id,"UNVERIFIED",label+" endpoint returned JSON, but receipt cryptography, exact-device provenance and consent have not been validated",url)
+  }catch(e){$("credential").value="";put(id,"BLOCKED","No usable trusted receipt: "+String(e.message).slice(0,125))}
+ }
+ $("deviceResults").textContent="Reachability checks cannot verify enrolled physical ESP32 nodes. Supply signed evidence with source/identity and inspect server-side verification logs."
+}
+function exportLedger(){
+ const payload={schema:"skynet-ops-evidence/v1",exported_at:now(),repository:ROOT,scope:"Read-only browser observations; NOT device acceptance",milestones:states.map(s=>{const x=m.get(s.id);return {id:x.id,name:x.name,status:current(x),detail:x.detail,observed_at:x.observed,stale:stale(x),source:x.url}}),operator_references:notes,events:events};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="skynet-deployment-evidence-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(n=>n.removeAttribute("aria-current"));b.setAttribute("aria-current","page");document.querySelectorAll(".view").forEach(n=>n.classList.toggle("active",n.id==="view-"+b.dataset.tab))}));
+document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(n=>n.classList.toggle("active",n===b));render()}));
+$("noteForm").addEventListener("submit",e=>{
+ e.preventDefault();const title=$("noteTitle").value.trim(),comment=$("noteComment").value.trim();let u;
+ try{u=new URL($("noteUrl").value.trim());if(u.protocol!=="https:"||u.username||u.password)throw Error()}catch{alert("Enter a valid HTTPS evidence URL without credentials.");return}
+ if(!title)return;
+ notes.unshift({title,comment,url:u.href,at:now(),status:"UNVERIFIED"});$("noteForm").reset();entry("Operator reference","UNVERIFIED","Manual reference added; evidence not independently validated",u.href);render()
+});
+$("clearNotes").addEventListener("click",()=>{notes=[];entry("Operator references","UNVERIFIED","Cleared in-memory notes");render()});
+$("export").addEventListener("click",exportLedger);$("export2").addEventListener("click",exportLedger);
+$("refresh").addEventListener("click",fetchPublic);$("refresh2").addEventListener("click",fetchPublic);
+$("checkHealth").addEventListener("click",checkHealth);$("checkWss").addEventListener("click",checkWss);
+$("checkConsent").addEventListener("click",checkConsent);$("checkDevices").addEventListener("click",checkDevices);
+renderActivity();render();fetchPublic();
+})();
+</script>
+</body>
+</html>
