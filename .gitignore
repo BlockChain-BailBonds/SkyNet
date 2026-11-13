@@ -2,7 +2,9 @@ __pycache__/
 *.pyc
 .env
 .env.*
-data/
+data/*
+!data/public/
+!data/public/*.json
 logs/
 *.pem
 *.key
