@@ -1,0 +1,16 @@
+name: Security checks
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject credential-shaped content
+        run: "! grep -RIE --exclude-dir=.git --exclude='security-checks.yml' '(github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{30,}|AIzaSy[A-Za-z0-9_-]{20,})' ."
+      - name: Validate public assets
+        run: |
+          python -m json.tool agent/model-manifest.json >/dev/null
+          python -m json.tool data/public/latest-alerts.json >/dev/null
+          node --check static/assets/spin.js

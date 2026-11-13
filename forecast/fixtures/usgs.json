@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","id":"abc","properties":{"mag":4.2,"title":"M 4.2 - Test Region","time":1767225600000,"url":"https://earthquake.usgs.gov/earthquakes/eventpage/abc"},"geometry":{"type":"Point","coordinates":[-118.2,34.1,10]}}]}

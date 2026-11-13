@@ -26,3 +26,6 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Verify source manifest
         run: sha256sum -c MANIFEST.sha256
+      - name: Validate browser JavaScript syntax
+        if: matrix.python-version == '3.13'
+        run: node --check static/assets/spin.js
