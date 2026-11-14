@@ -20,6 +20,7 @@ SkyNet is an evidence-first environmental, space-weather, scientific-research, a
 | --- | --- | --- |
 | Main operator console | [`index.html`](index.html) | Static application entrypoint |
 | Legacy geospatial dashboard | [`static/index.html`](static/index.html) | Map/consent interface; backend optional |
+| **SkyNet Pocket CYD firmware** | [CYD firmware instructions](pocket/firmware/README.md) · [Compiled binary artifact](https://github.com/BlockChain-BailBonds/SkyNet/actions/runs/43585114254/artifacts/14110680177) | ESP32 N4 build passed CI; hardware tests unverified |
 | CERN Intelligence Network | Main console → **CERN Intelligence** | Bounded, read-only public-research metadata |
 | Solar Watch & HAARP | Main console → **SolarWatch + HAARP** | NOAA observations and HAARP research links |
 | Sensor Agents & Training | Main console → **Sensor Agents & Training** | Source monitor evidence and shadow candidates |
@@ -40,7 +41,46 @@ Do not assume the conventional project URL `https://blockchain-bailbonds.github.
 - **Shadow analysis:** only validated timestamped numeric sources may produce unapproved descriptive candidates. No automatic threshold/model promotion.
 - **Local RuView integration:** an optional local HTTP gateway supports constrained read-only RuView health and sensing summaries. A running local process is not a deployed public service.
 - **Opt-in invitations:** a separate HTTPS gateway is necessary for phone-motion enrollment; the Pages website alone cannot accept enrollment POSTs or authenticated ESP32 uplinks.
-- **SkyNet Pocket:** firmware scaffolding and simulator only; actual sensor enrollment, CSI reporting, camera, or hardware acceptance require separate direct evidence.
+- **SkyNet Pocket CYD:** candidate firmware for the original ESP32-2432S028R (ESP32E N4), with 320×240 ILI9341 touchscreen, XPT2046 touch input, local Wi-Fi provisioning, read-only S3 status/RuView JSON checks, and an optional bounded JPEG snapshot viewer. **CI compilation passed, but physical board operation and live sensing remain UNVERIFIED.** The Pocket simulator is separate.
+
+## SkyNet Pocket CYD firmware — compiled candidate
+
+**Build date:** 14 November 2026. **Target:** original CYD ESP32-2432S028R, classic ESP32 / ESP32E N4, 4 MB flash, no PSRAM, ILI9341 LCD + XPT2046 touch. This is **not** an ESP32-S3 image. The GOOUUU ESP32-S3 N16R8 has already been flashed separately; do not overwrite it.
+
+**Download:** [Successful GitHub Actions build #2](https://github.com/BlockChain-BailBonds/SkyNet/actions/runs/43585114254) → artifact [`skynet-pocket-cyd-esp32-n4`](https://github.com/BlockChain-BailBonds/SkyNet/actions/runs/43585114254/artifacts/14110680177). Extract `skynet-cyd-esp32-4mb-merged.bin` and `SHA256SUMS.txt`. This CI artifact is retained for **30 days**, not a permanent release asset. [Source and detailed flash guide](pocket/firmware/README.md) · [draft firmware pull request #12](https://github.com/BlockChain-BailBonds/SkyNet/pull/12).
+
+| Check | 14 November 2026 evidence | Classification |
+| --- | --- | --- |
+| PlatformIO compilation for `esp32dev`/ESP32 N4 | [Successful CI run](https://github.com/BlockChain-BailBonds/SkyNet/actions/runs/43585114254), 883,673 B program, 50,872 B static RAM | **VERIFIED — compilation only** |
+| 4 MB merged flash image | Binary packaged for offset `0x0`, with bootloader at `0x1000`, partitions at `0x8000`, application at `0x10000`, plus checksums in artifact | **VERIFIED — packaging only** |
+| CYD USB write/readback, boot, LCD, touch, Wi-Fi | No device-specific capture attached to this firmware PR | **UNVERIFIED** |
+| GOOUUU S3 API compatibility | Actual running S3 endpoints and IP must be inspected separately | **UNVERIFIED** |
+| RuView CSI, S3 camera, live SkyNet ingestion | No direct CSI/camera/evidence-gated uplink trace in this firmware build | **UNVERIFIED** |
+
+### Manual CYD flash on Linux
+
+1. Connect **only the original CYD**, identify its serial device (for example by `ls -l /dev/serial/by-id/`) and confirm classic ESP32 with **4 MB flash** using `esptool flash_id`. Do not select the GOOUUU S3.
+2. Install esptool in a Python virtual environment if needed, download the CI artifact, and run `sha256sum -c SHA256SUMS.txt` in the extracted directory.
+3. Use the actual CYD serial port in place of the example `/dev/ttyUSB0`, and **back up the entire 4 MB flash first**:
+
+```bash
+python3 -m esptool --chip esp32 --port /dev/ttyUSB0 flash_id
+python3 -m esptool --chip esp32 --port /dev/ttyUSB0 read_flash 0x0 0x400000 original-cyd-backup.bin
+sha256sum original-cyd-backup.bin
+```
+
+4. After validating the backup is 4,194,304 bytes and checking the extracted image checksum, flash the merged image at **offset zero**:
+
+```bash
+python3 -m esptool --chip esp32 --port /dev/ttyUSB0 --baud 115200 write_flash 0x0 skynet-cyd-esp32-4mb-merged.bin
+python3 -m esptool --chip esp32 --port /dev/ttyUSB0 verify_flash 0x0 skynet-cyd-esp32-4mb-merged.bin
+```
+
+5. Reboot and inspect the serial output at 115200 baud. Verify boot, display and touchscreen directly on hardware. On first setup, the CYD should display its temporary `SKYNET-CYD` Wi-Fi AP password. Join that AP and visit `http://192.168.4.1` to enter **authorized** 2.4 GHz Wi-Fi and your S3's actual private IPv4 address.
+
+The CYD polls S3 `/api/status` and a configurable RuView JSON path (default `/api/ruview`). The camera tab fetches **single JPEG snapshots only** from an explicitly configured S3 endpoint, requiring `image/jpeg`, Content-Length, and a frame no larger than 64 KiB. It does not receive MJPEG/RTSP/WebRTC and **does not itself perform RuView CSI analysis**. A reachable HTTP endpoint is not proof of CSI detection, a working camera, signed/enrolled telemetry, or live public backend ingestion.
+
+If the screen or touch does not work on the actual CYD revision, do not reflash the S3; preserve the original CYD backup and the failed acceptance evidence, then correct the CYD-specific GPIO/display/touch calibration. The public GitHub Pages site remains a static frontend, not an ingestion endpoint.
 
 ## Architecture and trust boundaries
 
@@ -139,6 +179,7 @@ A deployable artifact in Actions is **not** a published URL. Scheduled workflows
 | [`pages.yml`](.github/workflows/pages.yml) | Build and deploy Main + CERN/NOAA/HAARP snapshots | Main push, manual dispatch, best-effort 15-minute schedule |
 | [`solar-watch.yml`](.github/workflows/solar-watch.yml) | Independent public NOAA monitoring and evidence artifact | Main push, manual dispatch, best-effort quarter-hour schedule |
 | [`forecasts.yml`](.github/workflows/forecasts.yml) | USGS/NWS bounded snapshot artifact | Manual dispatch, best-effort two-hour schedule |
+| [`cyd-pocket.yml`](.github/workflows/cyd-pocket.yml) | Build and package ESP32 N4 CYD firmware, SHA-256 manifest and merged flash artifact | Firmware PR changes; manual dispatch |
 
 The latest verifiable test/CI history is in [Actions](https://github.com/BlockChain-BailBonds/SkyNet/actions). A green source-validation job does not override a red Pages deployment job.
 
@@ -178,7 +219,7 @@ forecast/                 USGS, NWS, NOAA, HAARP, CERN public collectors
 sensor_agents/            Per-source hash-linked evidence and shadow training
 data/public/              Bounded published research and environment snapshots
 alerts/                   Deterministic alert classification
-pocket/                   ESP32 firmware candidate and simulator
+pocket/                   CYD candidate firmware, build/flash guide and simulator
 chimera/                  Separate analysis UI and optional backend
 server.py                 Local read-only gateway and approved enrollment routes
 tests/                    Offline and network-safe validation suites
