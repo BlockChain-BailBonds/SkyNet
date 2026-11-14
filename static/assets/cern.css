@@ -1,0 +1,1 @@
+.cern-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}.cern-grid article{overflow-wrap:anywhere}.cern-grid .row{align-items:center}.cern-grid code{font-size:11px;color:#e7b84b;overflow-wrap:anywhere}.cern-grid details{margin:12px 0}.cern-grid li{margin-bottom:5px}@media(max-width:760px){.cern-grid{grid-template-columns:1fr}}

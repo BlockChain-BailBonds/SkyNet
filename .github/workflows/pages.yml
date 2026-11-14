@@ -31,6 +31,8 @@ jobs:
         run: python -m forecast.space_weather --allow-blocked
       - name: Collect read-only HAARP public diagnostics and antenna notices
         run: python -m forecast.haarp
+      - name: Collect bounded read-only CERN public research metadata
+        run: python -m forecast.cern --allow-blocked
       - name: Publish public sensor-agent input-output evidence
         run: python -m sensor_agents.report
       - name: Prepare bounded public artifact
