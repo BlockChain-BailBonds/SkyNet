@@ -56,9 +56,9 @@ def fetch_public(url):
         content_type = response.headers.get("Content-Type", "").split(";")[0].lower()
         if content_type not in {"text/html", "image/png", "image/jpeg"}:
             raise ValueError("unexpected HAARP content type")
-        if content_type == "image/png" and not body.startswith(b"\\x89PNG\\r\\n\\x1a\\n"):
+        if content_type == "image/png" and not body.startswith(bytes((137,80,78,71,13,10,26,10))):
             raise ValueError("invalid PNG")
-        if content_type == "image/jpeg" and not body.startswith(b"\\xff\\xd8"):
+        if content_type == "image/jpeg" and not body.startswith(bytes((255,216))):
             raise ValueError("invalid JPEG")
         return body
 
