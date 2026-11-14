@@ -24,6 +24,18 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run unit and HTTP tests
         run: python -m unittest discover -s tests -v
+      - name: Smoke-test public CERN read-only collector (upstream outage allowed)
+        if: matrix.python-version == '3.13'
+        run: |
+          python -m forecast.cern --allow-blocked
+          python -c 'import json; from pathlib import Path; p=json.loads(Path("data/public/cern-status.json").read_text()); assert p["sources_checked"] == 6 and not p["direct_cern_sensor_access"]'
+      - name: Save CERN source evidence
+        if: matrix.python-version == '3.13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cern-public-metadata-evidence
+          path: data/public/cern-status.json
+          retention-days: 7
       - name: Verify source manifest
         run: sha256sum -c MANIFEST.sha256
       - name: Validate browser JavaScript syntax
