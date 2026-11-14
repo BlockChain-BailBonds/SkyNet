@@ -13,6 +13,7 @@ SkyNet is an original integration gateway and dashboard. It can query the follow
 | [USGS Water Services](https://waterservices.usgs.gov/) | Public instantaneous stream-gauge measurements | Preserve station, parameter, unit, qualifier, timestamp, and source attribution |
 | [NOAA CO-OPS](https://tidesandcurrents.noaa.gov/) | Public tide and water-level station observations | Preserve station, datum, units, quality flags, timestamp, and NOAA attribution |
 | [NOAA NDBC](https://www.ndbc.noaa.gov/) | Public buoy meteorological and ocean observations | Preserve station, units, timestamp, and NOAA attribution; missing values are not zero |
+| [Raspberry Shake FDSN](https://data.raspberryshake.org/fdsnws/) | Station metadata for HAARP-linked seismic/infrasound station AM.RFE1B | SkyNet publishes only bounded channel metadata and its hash; waveform retrieval/redistribution remains subject to Raspberry Shake licensing |
 | [OpenStreetMap](https://www.openstreetmap.org/copyright) | Base map tiles/data | Maintain OpenStreetMap attribution; comply with tile usage policy and ODbL obligations where applicable |
 | [Leaflet](https://leafletjs.com/) | Remote browser map library | Observe the applicable upstream software license and attribution requirements |
 
