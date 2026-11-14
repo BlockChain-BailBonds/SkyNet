@@ -1,0 +1,250 @@
+name: SkyNet CodeForge - Isolated Self-Coding
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Fixed allowlisted engineering task
+        required: true
+        type: choice
+        options:
+          - forecast-fixture
+          - docs-ops
+  workflow_run:
+    workflows: ["Refresh bounded official snapshots"]
+    types: [completed]
+    branches: [main]
+concurrency:
+  group: skynet-codeforge-worker
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  preflight:
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'failure' &&
+       github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      ready: ${{ steps.gate.outputs.ready }}
+      task: ${{ steps.gate.outputs.task }}
+      prompt: ${{ steps.gate.outputs.prompt }}
+      branch: ${{ steps.gate.outputs.branch }}
+      base_sha: ${{ steps.gate.outputs.base_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Inspect fixed task eligibility and deduplicate existing branch
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_TASK: ${{ inputs.task }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          echo "base_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            REQUESTED_TASK=forecast-fixture
+          fi
+          python3 -m codeforge.preflight --task "$REQUESTED_TASK" --output "$GITHUB_OUTPUT"
+
+  generate:
+    needs: preflight
+    if: needs.preflight.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.preflight.outputs.base_sha }}
+          persist-credentials: false
+      - name: Reject missing model credential before spending compute
+        env:
+          API_KEY_CONFIGURED: ${{ secrets.OPENAI_API_KEY != '' }}
+        run: |
+          if [ "$API_KEY_CONFIGURED" != "true" ]; then
+            echo "BLOCKED: Configure repository secret OPENAI_API_KEY" >&2
+            exit 2
+          fi
+      - name: Create disposable documentation directory
+        run: mkdir -p docs/codeforge-notes
+      - name: Run the isolated Codex coding worker
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: ${{ needs.preflight.outputs.prompt }}
+          permission-profile: ":workspace"
+          safety-strategy: drop-sudo
+          codex-args: '["--ephemeral"]'
+      - name: Capture untrusted candidate patch only
+        run: |
+          git add -N -A
+          git diff --binary --no-ext-diff HEAD > "$RUNNER_TEMP/codeforge.patch"
+          test -s "$RUNNER_TEMP/codeforge.patch"
+          test "$(wc -c < "$RUNNER_TEMP/codeforge.patch")" -le 65536
+      - name: Upload patch; no repository write token in coding job
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeforge-candidate-${{ github.run_id }}
+          path: ${{ runner.temp }}/codeforge.patch
+          retention-days: 7
+          if-no-files-found: error
+
+  red:
+    name: CodeForge independent Red validation
+    needs: [preflight, generate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.preflight.outputs.base_sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: codeforge-candidate-${{ github.run_id }}
+          path: ${{ runner.temp }}/candidate
+      - name: Challenge permission boundary, path integrity, artifact hash
+        run: |
+          python3 -m unittest tests.test_codeforge_red tests.test_codeforge_policy tests.test_codeforge_merge -v
+          python3 -m codeforge.policy --task "$TASK" --patch "$RUNNER_TEMP/candidate/codeforge.patch" --report "$RUNNER_TEMP/red-report.json"
+          python3 - "$RUNNER_TEMP/red-report.json" <<'PY'
+          import json, pathlib, sys
+          from codeforge.pr_guard import DANGEROUS_MD
+          report = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          if report["auto_merge_candidate"]:
+              for name in report["paths"]:
+                  assert not DANGEROUS_MD.search(pathlib.Path(name).read_text())
+          print("RED_ACCEPTANCE: candidate path restrictions and active-content checks passed")
+          PY
+        env:
+          TASK: ${{ needs.preflight.outputs.task }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codeforge-red-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/red-report.json
+          retention-days: 7
+
+  blue:
+    name: CodeForge independent Blue validation
+    needs: [preflight, generate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.preflight.outputs.base_sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: codeforge-candidate-${{ github.run_id }}
+          path: ${{ runner.temp }}/candidate
+      - name: Apply only an admitted patch
+        env:
+          TASK: ${{ needs.preflight.outputs.task }}
+        run: python3 -m codeforge.policy --task "$TASK" --patch "$RUNNER_TEMP/candidate/codeforge.patch" --report "$RUNNER_TEMP/blue-report.json"
+      - name: Build trusted networkless test image
+        run: docker build -t skynet-codeforge-blue -f codeforge/blue.Dockerfile .
+      - name: Run all regression tests in non-root read-only container
+        run: |
+          docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges --pids-limit 256 \
+            --memory 1024m --cpus 2 --user 10001:10001 \
+            --tmpfs /tmp:rw,nosuid,nodev,size=128m \
+            -e PYTHONDONTWRITEBYTECODE=1 \
+            -v "$PWD:/workspace:ro" -w /workspace \
+            skynet-codeforge-blue
+      - name: Check that baseline source integrity was not bypassed
+        run: |
+          sha256sum -c MANIFEST.sha256
+          git diff --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codeforge-blue-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/blue-report.json
+          retention-days: 7
+
+  publish:
+    name: Publish reviewed candidate PR (never direct main)
+    needs: [preflight, generate, red, blue]
+    if: >-
+      ${{ needs.red.result == 'success' && needs.blue.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.preflight.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: codeforge-candidate-${{ github.run_id }}
+          path: ${{ runner.temp }}/candidate
+      - name: Revalidate patch in clean privileged job
+        env:
+          TASK: ${{ needs.preflight.outputs.task }}
+        run: python3 -m codeforge.policy --task "$TASK" --patch "$RUNNER_TEMP/candidate/codeforge.patch" --report "$RUNNER_TEMP/publish-report.json"
+      - name: Publish only to an isolated CodeForge branch and open PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TASK: ${{ needs.preflight.outputs.task }}
+          BRANCH: ${{ needs.preflight.outputs.branch }}
+          BASE_SHA: ${{ needs.preflight.outputs.base_sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$BASE_SHA"
+          REMOTE_HEAD="$(git ls-remote --heads origin refs/heads/main | cut -f1)"
+          test "$REMOTE_HEAD" = "$BASE_SHA"
+          if git ls-remote --exit-code --heads origin "refs/heads/$BRANCH" >/dev/null; then
+            echo "BLOCKED: CodeForge branch already exists" >&2
+            exit 2
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add -A
+          git diff --cached --check
+          git commit -m "CodeForge: $TASK validated candidate"
+          gh auth setup-git
+          git push origin "HEAD:refs/heads/$BRANCH"
+          python3 - "$RUNNER_TEMP/publish-report.json" "$RUNNER_TEMP/codeforge-pr.md" "$GITHUB_RUN_ID" <<'PY'
+          import json, pathlib, sys
+          receipt = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          lines = [
+              "[codeforge-task:" + receipt["task"] + "]",
+              "[codeforge-patch-sha256:" + receipt["patch_sha256"] + "]",
+              "",
+              "Automated isolated candidate; no production change was made by this job.",
+              "Risk class: " + receipt["risk"],
+              "Changed files: " + ", ".join(receipt["paths"]),
+              "Patch SHA-256: " + receipt["patch_sha256"],
+              "Generating run: https://github.com/BlockChain-BailBonds/SkyNet/actions/runs/" + sys.argv[3],
+              "Red and Blue jobs passed on the producing run.",
+              "",
+              "IMPORTANT: No direct merge. Forecast repair requires explicit human review.",
+              "The docs-only candidate may be enabled for native auto-merge only after",
+              "the operator label, a fresh independent human approval, required",
+              "GitHub CI checks and enforced main ruleset have been independently verified.",
+          ]
+          pathlib.Path(sys.argv[2]).write_text("\n".join(lines) + "\n")
+          PY
+          gh pr create --head "$BRANCH" --base main --title "CodeForge: $TASK" --body-file "$RUNNER_TEMP/codeforge-pr.md"
+          gh workflow run ci.yml --ref "$BRANCH"
+          gh workflow run security-checks.yml --ref "$BRANCH"
+          gh workflow run codeforge-pr-guards.yml --ref "$BRANCH"

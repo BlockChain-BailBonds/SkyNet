@@ -1,0 +1,44 @@
+name: CodeForge independent PR guards
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  red:
+    name: CodeForge Red
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test known attack payloads and merge gate denial paths
+        run: python3 -m unittest tests.test_codeforge_red tests.test_codeforge_policy tests.test_codeforge_merge -v
+      - name: Verify CodeForge PR patch restrictions
+        env:
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        run: |
+          case "$BRANCH_NAME" in
+            codeforge/docs-ops) TASK=docs-ops ;;
+            codeforge/forecast-fixture) TASK=forecast-fixture ;;
+            *) echo "Not a CodeForge-generated branch; test-only validation"; exit 0 ;;
+          esac
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          python3 -m codeforge.pr_guard --task "$TASK"
+
+  blue:
+    name: CodeForge Blue
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test all trusted baseline invariants
+        run: |
+          python3 -m unittest discover -s tests -v
+          sha256sum -c MANIFEST.sha256
+          node --check static/assets/spin.js
+          node --check static/assets/cern.js
