@@ -15,6 +15,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
+from sensor_agents.runtime import NOAA_SPECS, Supervisor
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "data" / "public" / "space-weather.json"
@@ -181,6 +182,8 @@ def collect(fetch=bounded_fetch, now=None):
     now = now.astimezone(timezone.utc)
     observed = {}
     sources = []
+    supervisor = Supervisor(NOAA_SPECS, stamp(now))
+    agent_ids = {"scales": "NOAA.GRS", "kp": "NOAA.KP", "flare": "NOAA.GOES_FLARES", "bulletins": "NOAA.BULLETINS"}
     for name, path in ENDPOINTS.items():
         url = BASE + path
         try:
@@ -189,6 +192,13 @@ def collect(fetch=bounded_fetch, now=None):
                 raise SourceError("invalid or unbounded response")
             document = json.loads(raw)
             value = NORMALIZERS[name](document, now)
+            supervisor.ingress(agent_ids[name], raw)
+            supervisor.egress(agent_ids[name], value)
+            if name == "kp":
+                supervisor.candidate(agent_ids[name], [
+                    {"observed_at": stamp(utc(row["time_tag"])), "value": row["Kp"]}
+                    for row in document
+                ])
             observed[name] = value
             sources.append({"source": name, "source_url": url, "status":
                             "VERIFIED" if value["fresh"] else "UNVERIFIED",
@@ -198,6 +208,7 @@ def collect(fetch=bounded_fetch, now=None):
                             "detail": "Schema parsed; source timestamp within defined freshness window"
                             if value["fresh"] else "No sufficiently recent source event; historical only"})
         except (SourceError, OSError, TimeoutError, UnicodeError, json.JSONDecodeError) as exc:
+            supervisor.quarantine(agent_ids[name], "SCHEMA_REJECTED" if isinstance(exc, (SourceError, json.JSONDecodeError)) else "FETCH_FAILED")
             sources.append({"source": name, "source_url": url, "status": "BLOCKED",
                             "checked_at": stamp(now),
                             "detail": type(exc).__name__ + ": " + str(exc)[:125]})
@@ -214,6 +225,7 @@ def collect(fetch=bounded_fetch, now=None):
         "latest_flare": observed.get("flare"),
         "bulletins": observed.get("bulletins"),
         "sources": sources,
+        "agent_monitor": supervisor.public_report(),
     }
 
 
