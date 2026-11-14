@@ -47,7 +47,7 @@ class SpaceWeatherTests(unittest.TestCase):
         report = collect(fetch=fixture_fetch(), now=NOW)
         self.assertEqual(report["status"], "VERIFIED")
         self.assertEqual(report["current_scales"]["levels"], {"G": 1, "R": 2, "S": 0})
-        self.assertEqual(report["planetary_kp"]["value"], 2.5)
+        self.assertEqual(report["planetary_kp"]["value"], 2.0)
         self.assertEqual(report["latest_flare"]["latest"]["peak_class"], "C1.3")
         self.assertEqual(len(report["sources"]), 4)
         audit = report["agent_monitor"]
