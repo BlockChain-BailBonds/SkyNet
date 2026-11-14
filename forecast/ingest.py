@@ -18,7 +18,7 @@ def main():
    if len(raw)>5_000_000: raise ValueError('payload too large')
    rows=normalizer(json.loads(raw)); events.extend(rows); status.append({'source':name,'status':'VERIFIED','detail':f'{len(rows)} validated public records','checked_at':stamp()})
   except Exception as e: status.append({'source':name,'status':'BLOCKED','detail':str(e)[:180],'checked_at':stamp()})
- status.extend([{'source':'NASA FIRMS','status':'BLOCKED','detail':'Credential required; thermal anomalies are not confirmed wildfires','checked_at':stamp()},{'source':'RuView','status':'BLOCKED','detail':'Private local gateway unavailable in Pages','checked_at':stamp()},{'source':'Pocket telemetry gateway','status':'BLOCKED','detail':'GitHub Pages cannot receive telemetry','checked_at':stamp()}]); OUT.mkdir(parents=True,exist_ok=True)
+ status.extend([{'source':'RuView','status':'BLOCKED','detail':'Private local gateway unavailable in Pages','checked_at':stamp()},{'source':'Pocket telemetry gateway','status':'BLOCKED','detail':'GitHub Pages cannot receive telemetry','checked_at':stamp()}]); OUT.mkdir(parents=True,exist_ok=True)
  (OUT/'latest-forecasts.json').write_text(json.dumps(events,separators=(',',':')),encoding='utf-8'); (OUT/'latest-alerts.json').write_text(json.dumps(publish(events),separators=(',',':')),encoding='utf-8'); (OUT/'source-status.json').write_text(json.dumps(status,separators=(',',':')),encoding='utf-8')
  return 0 if any(s['status']=='VERIFIED' for s in status) else 2
 if __name__=='__main__': sys.exit(main())
