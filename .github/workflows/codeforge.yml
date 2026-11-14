@@ -81,7 +81,7 @@ jobs:
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           prompt-file: ${{ needs.preflight.outputs.prompt }}
-          permission-profile: ":workspace"
+          sandbox: workspace-write
           safety-strategy: drop-sudo
           codex-args: '["--ephemeral"]'
       - name: Capture untrusted candidate patch only
