@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '53 */3 * * *'
 permissions:
   contents: read
   pages: write
@@ -25,6 +27,8 @@ jobs:
           python -m unittest discover -s tests -v
           sha256sum -c MANIFEST.sha256
           node --check static/assets/spin.js
+      - name: Collect read-only HAARP public diagnostics and antenna notices
+        run: python -m forecast.haarp
       - name: Prepare bounded public artifact
         run: |
           mkdir -p _site
@@ -34,9 +38,9 @@ jobs:
           cp chimera/index.html _site/chimera/index.html
           touch _site/.nojekyll
           test -s _site/index.html
+      # Pages must first be enabled by a repository administrator in Settings → Pages.
+      # GITHUB_TOKEN cannot create a Pages site (administration permission required).
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v4
         with: {path: _site}
       - uses: actions/deploy-pages@v4
