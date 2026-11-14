@@ -38,9 +38,9 @@ jobs:
           cp chimera/index.html _site/chimera/index.html
           touch _site/.nojekyll
           test -s _site/index.html
+      # Pages must first be enabled by a repository administrator in Settings → Pages.
+      # GITHUB_TOKEN cannot create a Pages site (administration permission required).
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v4
         with: {path: _site}
       - uses: actions/deploy-pages@v4
