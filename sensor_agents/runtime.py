@@ -67,7 +67,7 @@ class Supervisor:
             raise ValueError("duplicate sensor IDs")
         self.events: list[dict] = []
         self.states = {key: {"id": key, "source_url": spec.source_url,
-                             "input_count": 0, "output_count": 0,
+                             "input_count": 0, "output_count": 0, "metadata_count": 0,
                              "last_status": "UNVERIFIED",
                              "learning": "AWAITING_VALIDATED_OBSERVATIONS",
                              "training_candidate": None, "last_observed_at": None}
@@ -77,7 +77,7 @@ class Supervisor:
     def _append(self, sensor_id: str, direction: str, digest: str, status: str, observed_at: str | None):
         if sensor_id not in self.specs:
             raise ValueError("unregistered sensor agent")
-        if direction not in {"INPUT", "OUTPUT", "QUARANTINE", "TRAIN_CANDIDATE"}:
+        if direction not in {"INPUT", "OUTPUT", "QUARANTINE", "TRAIN_CANDIDATE", "LINKED_METADATA"}:
             raise ValueError("invalid event direction")
         if not isinstance(digest, str) or len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
             raise ValueError("invalid evidence SHA-256")
@@ -99,6 +99,10 @@ class Supervisor:
             state["last_observed_at"] = observed_at
         elif direction == "QUARANTINE":
             state["last_status"] = "BLOCKED"
+        elif direction == "LINKED_METADATA":
+            state["metadata_count"] += 1
+            state["last_status"] = "UNVERIFIED"
+            state["learning"] = "NO_NUMERIC_MEASUREMENT"
         return event
 
     def ingress(self, sensor_id: str, raw: bytes):
@@ -118,6 +122,10 @@ class Supervisor:
         if reason not in {"FETCH_FAILED", "SCHEMA_REJECTED", "STALE", "POLICY_REJECTED"}:
             raise ValueError("invalid quarantine code")
         return self._append(sensor_id, "QUARANTINE", sha({"code": reason}), "BLOCKED", None)
+
+    def linked_metadata(self, sensor_id: str, document_digest: str):
+        """Monitor an official catalog document; do not treat it as a sensor reading."""
+        return self._append(sensor_id, "LINKED_METADATA", document_digest, "UNVERIFIED", None)
 
     def candidate(self, sensor_id: str, samples: list[dict]):
         """Train a descriptive MAD baseline in SHADOW mode; never self-deploy."""
