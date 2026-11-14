@@ -75,7 +75,7 @@ query strings, analytics or telemetry records.
 ## HAARP subsystem
 
 After the HAARP integration is merged, the Pages workflow can refresh bounded
-HAARP source documents approximately every 3 hours; scheduled GitHub Actions
+HAARP source documents approximately every 15 minutes; scheduled GitHub Actions
 are best effort. HAARP array capabilities are static published specifications:
 180 elements, 12×15 grid, 3.6 MW design power. Current transmission state,
 beam, frequency and per-antenna telemetry remain UNKNOWN/NOT PUBLIC.
