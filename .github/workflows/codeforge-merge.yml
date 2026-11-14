@@ -1,0 +1,52 @@
+name: CodeForge low-risk auto-merge controller
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Existing CodeForge pull request number (0 = find docs-ops)
+        required: true
+        default: '0'
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: codeforge-merge-controller
+  cancel-in-progress: false
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Evaluate current head, checks, branch rules and human approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_PR: ${{ inputs.pr_number }}
+        run: |
+          PR="$REQUESTED_PR"
+          if [ -z "$PR" ] || [ "$PR" = "0" ]; then
+            PR="$(gh pr list --state open --head codeforge/docs-ops --json number --jq '.[0].number // 0')"
+          fi
+          case "$PR" in
+            ''|0) echo "BLOCKED: No current docs-only CodeForge PR"; exit 0 ;;
+            *[!0-9]*) echo "BLOCKED: Invalid PR identifier"; exit 0 ;;
+          esac
+          python3 -m codeforge.merge_gate --pr "$PR" --out "$RUNNER_TEMP/gate.json"
+          readarray -t RESULT < <(python3 - "$RUNNER_TEMP/gate.json" <<'PY'
+          import json, sys
+          v=json.load(open(sys.argv[1]))
+          print("true" if v["eligible"] else "false")
+          print(v.get("head_sha", ""))
+          PY
+          )
+          if [ "${RESULT[0]}" != "true" ]; then
+            echo "BLOCKED: Current evidence does not authorize auto-merge"
+            exit 0
+          fi
+          test "${#RESULT[1]}" -eq 40
+          gh pr merge "$PR" --auto --squash --match-head-commit "${RESULT[1]}"
