@@ -23,21 +23,21 @@ Sources:
 
 Run from the repository root:
 
-\`\`\`bash
+```bash
 python3 -m forecast.cern --allow-blocked
 python3 -m unittest tests.test_cern -v
-\`\`\`
+```
 
-Output: \`data/public/cern-status.json\`. Six agents issue separate bounded HTTPS requests with a 9-second timeout each, 800 KiB maximum body size, same-host HTTPS redirects, fixed URLs, and schema validation. Only small released-record metadata and SHA-256 response digests are retained. Upstream errors become \`BLOCKED\`; they are not presented as positive evidence. Default CLI exits nonzero if any source blocks; \`--allow-blocked\` allows degraded GitHub Pages deployment with explicit fail-closed statuses.
+Output: `data/public/cern-status.json`. Six agents issue separate bounded HTTPS requests with a 9-second timeout each, 800 KiB maximum body size, same-host HTTPS redirects, fixed URLs, and schema validation. Only small released-record metadata and SHA-256 response digests are retained. Upstream errors become `BLOCKED`; they are not presented as positive evidence. Default CLI exits nonzero if any source blocks; `--allow-blocked` allows degraded GitHub Pages deployment with explicit fail-closed statuses.
 
-The Pages workflow runs the collector before publishing \`data/\`; it checks tests before network collection. Scheduled runs depend on GitHub Actions and are best-effort, not guaranteed realtime.
+The Pages workflow runs the collector before publishing `data/`; it checks tests before network collection. Scheduled runs depend on GitHub Actions and are best-effort, not guaranteed realtime.
 
 ## Status meaning
 
-- \`VERIFIED\`: Source returned bounded, schema-validated public metadata on the recorded collection run. **Not** an independently verified scientific measurement.
-- \`UNVERIFIED\`: Physical measurement, interpretation, and real detector access remain unverified. A retrieved page cannot justify a detector reading.
-- \`BLOCKED\`: Endpoint fetch or validation failed, snapshot missing/stale, or correlation lacks comparable measurements.
-- \`FAILED\`: Reserved for a measured negative acceptance test; normal unreachable sources do not imply a detector failure.
+- `VERIFIED`: Source returned bounded, schema-validated public metadata on the recorded collection run. **Not** an independently verified scientific measurement.
+- `UNVERIFIED`: Physical measurement, interpretation, and real detector access remain unverified. A retrieved page cannot justify a detector reading.
+- `BLOCKED`: Endpoint fetch or validation failed, snapshot missing/stale, or correlation lacks comparable measurements.
+- `FAILED`: Reserved for a measured negative acceptance test; normal unreachable sources do not imply a detector failure.
 
 Browser freshness cutoff is 90 minutes since snapshot generation. A stale snapshot loses effective green source status even if it was once retrieved successfully. Historical record publication dates are not used to claim live sensing.
 

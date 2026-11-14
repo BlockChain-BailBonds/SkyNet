@@ -38,15 +38,44 @@ jobs:
       - name: Prepare bounded public artifact
         run: |
           mkdir -p _site
-          cp index.html _site/index.html
+          cp index.html README.md _site/
           cp -R static data agent docs _site/
           mkdir -p _site/chimera
           cp chimera/index.html _site/chimera/index.html
           touch _site/.nojekyll
           test -s _site/index.html
-      # Pages must first be enabled by a repository administrator in Settings → Pages.
-      # GITHUB_TOKEN cannot create a Pages site (administration permission required).
-      - uses: actions/configure-pages@v5
+      - name: Validate staged site and evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("_site")
+          required = (
+              "index.html", "README.md", "static/assets/spin.js",
+              "static/assets/spin.css", "static/assets/cern.js",
+              "static/assets/cern.css", "agent/model-manifest.json",
+              "docs/cern.md", "data/public/cern-status.json",
+              "data/public/space-weather.json",
+          )
+          for item in required:
+              path = root / item
+              assert path.is_file() and path.stat().st_size > 0, f"Missing Pages asset: {item}"
+          cern = json.loads((root / "data/public/cern-status.json").read_text())
+          assert cern["sources_checked"] == 6 and len(cern["agents"]) == 6
+          assert cern["direct_cern_sensor_access"] is False
+          print("Verified static asset existence and schema; no live detector claim")
+          PY
+      - name: Retain deployable site even if Pages is disabled
+        uses: actions/upload-artifact@v4
+        with:
+          name: skynet-pages-ready
+          path: _site/
+          include-hidden-files: true
+          retention-days: 7
+      # Page enablement is a one-time repository administration action.
+      # The default GITHUB_TOKEN cannot provision a missing Pages site.
+      - name: Configure existing GitHub Pages site
+        uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with: {path: _site}
       - uses: actions/deploy-pages@v4
