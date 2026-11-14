@@ -183,3 +183,22 @@ def collect(fetch=fetch_public, checked_at=None):
         "checked_at": at, "source_url": FAQ_URL,
     })
     return record, statuses
+
+def main():
+    """Refresh publishable read-only HAARP status; never label charts as decoded measurements."""
+    import json
+    from pathlib import Path
+    record, statuses = collect()
+    out = Path(__file__).resolve().parents[1] / "data" / "public"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "haarp-status.json").write_text(
+        json.dumps(record, sort_keys=True, separators=(",", ":")), encoding="utf-8"
+    )
+    (out / "haarp-source-status.json").write_text(
+        json.dumps(statuses, sort_keys=True, separators=(",", ":")), encoding="utf-8"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
