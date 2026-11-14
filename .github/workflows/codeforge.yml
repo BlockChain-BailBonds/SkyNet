@@ -47,8 +47,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REQUESTED_TASK: ${{ inputs.task }}
           EVENT_NAME: ${{ github.event_name }}
+          API_KEY_CONFIGURED: ${{ secrets.OPENAI_API_KEY != '' }}
         run: |
           echo "base_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          if [ "$API_KEY_CONFIGURED" != "true" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "CODEFORGE_BLOCKED: Missing encrypted API key configuration"
+            exit 0
+          fi
           if [ "$EVENT_NAME" = "workflow_run" ]; then
             REQUESTED_TASK=forecast-fixture
           fi

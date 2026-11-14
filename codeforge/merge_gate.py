@@ -17,6 +17,7 @@ REPOSITORY = "BlockChain-BailBonds/SkyNet"
 BASE = "/repos/" + REPOSITORY
 REQUIRED_CHECKS = frozenset({
     "test (3.10)", "test (3.13)", "scan", "CodeForge Red", "CodeForge Blue",
+    "CodeForge Workflow Syntax", "CodeForge Blue Sandbox Smoke",
 })
 APPROVAL_LABEL = "codeforge:low-risk-approved"
 
@@ -88,7 +89,7 @@ def evaluate(repo: dict, pr: dict, files: list, rules: list, checks: list,
                 latest[name] = c
     for name in REQUIRED_CHECKS:
         run = latest.get(name)
-        if not run or run.get("status") != "completed" or run.get("conclusion") != "success" or (run.get("app") or {}).get("slug") != "github-actions" or (run.get("head_sha") not in {None, head_sha}):
+        if not run or run.get("status") != "completed" or run.get("conclusion") != "success" or (run.get("app") or {}).get("slug") != "github-actions" or (run.get("head_sha") != head_sha):
             deny("REQUIRED_CHECK_NOT_PASSED:" + name)
     if not isinstance(reviews, list) or len(reviews) >= 100:
         deny("REVIEW_COVERAGE_UNVERIFIED")

@@ -9,7 +9,7 @@ This subsystem is proposed on a feature branch and remains **UNVERIFIED as an op
 ## Architecture
 
 1. A trusted preflight job maps a manually chosen task or a failed forecast workflow to one of exactly two committed task definitions. It checks for an existing CodeForge task branch and rejects duplicates.
-2. A disposable runner checks out a pinned SkyNet revision without persisted Git credentials. The official OpenAI Codex action runs with workspace-limited filesystem permissions and sudo dropped. The AI may write a patch locally but receives no GitHub repository write token or production deployment credential.
+2. A disposable runner checks out a pinned SkyNet revision without persisted Git credentials. The official OpenAI Codex action runs with workspace-write sandbox permissions and sudo dropped. The AI may write a patch locally but receives no GitHub repository write token or production deployment credential.
 3. A generated text diff is uploaded as a time-limited artifact.
 4. The independent Red job validates patch boundaries, disallowed paths, dangerous document content and adversarial policy tests. The independent Blue job applies the same patch on a separate checkout and runs the repository regression suite inside a non-root, read-only, networkless container.
 5. Only after both jobs pass can a separate write-enabled publisher revalidate the patch, check the base commit is current and create a new CodeForge branch and PR. It cannot push to main.
@@ -40,7 +40,12 @@ When the Refresh bounded official snapshots workflow fails on main, CodeForge ca
 
 The initial repository inspection reported auto-merge disabled and no active rulesets. These states make the merge controller **BLOCKED** by design. Do not bypass protections to force merging.
 
-An administrator must configure an active ruleset targeting main that requires a pull request, at least one human review, approval after the most recent push, required successful checks, prevention of force pushes and deletion. Configure exact required checks: test (3.10), test (3.13), scan, CodeForge Red and CodeForge Blue. Then enable Allow auto-merge in repository General settings.
+An administrator must configure an active ruleset targeting main that requires a pull request, at least one human review, approval after the most recent push, required successful checks, prevention of force pushes and deletion. Configure exact required checks: test (3.10), test (3.13), scan, CodeForge Red, CodeForge Blue,
+CodeForge Workflow Syntax, and CodeForge Blue Sandbox Smoke. Then enable Allow auto-merge in repository General settings.
+Repository Actions settings must separately allow GitHub Actions to create
+pull requests; if disabled, publishing fails safely rather than writing to
+main. Create the label codeforge:low-risk-approved in repository Labels settings
+before an operator attempts to apply it.
 
 For each docs-ops candidate, a human with write access must apply **codeforge:low-risk-approved**, and a separate human reviewer must approve the latest exact commit. An approved older commit, dismissed review, missing checks, missing rules, foreign branch or unauthorized path makes the decision fail closed. The controller reads branch rules from GitHub and refuses to infer protection from a green build.
 
