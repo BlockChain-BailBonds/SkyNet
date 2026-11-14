@@ -1,0 +1,49 @@
+name: CYD Pocket Firmware
+on:
+  pull_request:
+    paths:
+      - "pocket/firmware/**"
+      - ".github/workflows/cyd-pocket.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-cyd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install PlatformIO and esptool
+        run: python -m pip install "platformio>=6.1,<7" "esptool>=4.7,<5"
+      - name: Compile for ESP32 N4 CYD
+        run: pio run -d pocket/firmware -e esp32-2432S028R
+      - name: Package full flash image
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD=pocket/firmware/.pio/build/esp32-2432S028R
+          DIST=pocket/firmware/dist
+          mkdir -p "$DIST"
+          test -s "$BUILD/bootloader.bin"
+          test -s "$BUILD/partitions.bin"
+          test -s "$BUILD/firmware.bin"
+          cp "$BUILD/bootloader.bin" "$DIST/bootloader.bin"
+          cp "$BUILD/partitions.bin" "$DIST/partitions.bin"
+          cp "$BUILD/firmware.bin" "$DIST/firmware.bin"
+          python -m esptool --chip esp32 merge_bin             --flash_mode dio --flash_freq 40m --flash_size 4MB             -o "$DIST/skynet-cyd-esp32-4mb-merged.bin"             0x1000 "$DIST/bootloader.bin"             0x8000 "$DIST/partitions.bin"             0x10000 "$DIST/firmware.bin"
+          (cd "$DIST" && sha256sum *.bin > SHA256SUMS.txt)
+          stat -c '%n %s bytes' "$DIST"/*
+      - name: Upload flash artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: skynet-pocket-cyd-esp32-n4
+          path: pocket/firmware/dist/*
+          if-no-files-found: error
+          retention-days: 30
