@@ -1,6 +1,6 @@
 # SkyNet Pocket firmware — CYD ESP32-2432S028R (N4)
 
-**Status: source integration candidate; actual hardware operation UNVERIFIED.** This package builds for the original single-micro-USB ILI9341/XPT2046 CYD with 4 MB flash and no PSRAM. Some dual-USB CYDs use a different LCD controller and require their own profile. This is **not** the GOOUUU ESP32-S3 firmware.
+**Status: compiled successfully in GitHub Actions; actual hardware operation UNVERIFIED.** This package builds for the original single-micro-USB ILI9341/XPT2046 CYD with 4 MB flash and no PSRAM. Some dual-USB CYDs use a different LCD controller and require their own profile. This is **not** the GOOUUU ESP32-S3 firmware.
 
 ## Features
 
@@ -19,7 +19,9 @@ python3 -m pip install "platformio>=6.1,<7" "esptool>=4.7,<5"
 pio run -d pocket/firmware -e esp32-2432S028R
 ```
 
-The pull request also runs `.github/workflows/cyd-pocket.yml`, uploading the exact 4 MB image and checksums. A completed CI build is **compile evidence only**; it cannot demonstrate touch registration, Wi-Fi or actual camera/CSI operation.
+**Verified CI evidence:** [14 November 2026, GitHub Actions CYD build #2](https://github.com/BlockChain-BailBonds/SkyNet/actions/runs/43585114254) completed successfully for commit `5f80c3ef4265e68740bbd1ac4bba4c8384aeba7b`. PlatformIO reported **883,673 B** of program flash (42.1% of 2 MB application partition) and **50,872 B** of static RAM (15.5% of 320 KB). The uploaded [artifact `skynet-pocket-cyd-esp32-n4`](https://github.com/BlockChain-BailBonds/SkyNet/actions/runs/43585114254/artifacts/14110680177) includes `skynet-cyd-esp32-4mb-merged.bin`, the bootloader, partitions, app binary and `SHA256SUMS.txt`. The CI artifact expires 30 days after 14 November 2026. A completed build is **compile/packaging evidence only**; it cannot demonstrate touch registration, Wi-Fi or actual camera/CSI operation.
+
+**Note:** Firmware changes remain in [draft PR #12](https://github.com/BlockChain-BailBonds/SkyNet/pull/12), not merged into `main`. The existing GOOUUU S3 firmware is untouched.
 
 ## Flash after verifying chip, backing up flash and reviewing the image
 
