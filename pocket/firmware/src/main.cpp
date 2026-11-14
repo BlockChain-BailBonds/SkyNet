@@ -156,6 +156,8 @@ bool showJpeg() {
   if(!http.begin(client,endpoint(cameraPath))) {
     cameraState="CONNECT FAILED"; return false;
   }
+  const char* trackedHeaders[]={"Content-Type"};
+  http.collectHeaders(trackedHeaders,1);
   int code=http.GET();
   String type=http.header("Content-Type");
   int len=http.getSize();
