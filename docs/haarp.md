@@ -56,7 +56,7 @@ separate timestamped, licensed, parseable instrument feeds are integrated
 and tested.
 
 The Pages workflow requests a fresh bounded snapshot on each deployment and
-is scheduled for a best-effort refresh every three hours. GitHub Actions
+is scheduled for a best-effort refresh every fifteen minutes. GitHub Actions
 schedules can be delayed or skipped. The dashboard marks older than six
 hours as stale. GitHub Pages remains static; the public site **does not**
 become an always-on ingestion gateway.

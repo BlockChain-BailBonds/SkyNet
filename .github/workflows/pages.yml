@@ -4,7 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '53 */3 * * *'
+    - cron: '7,22,37,52 * * * *'
 permissions:
   contents: read
   pages: write
@@ -27,8 +27,12 @@ jobs:
           python -m unittest discover -s tests -v
           sha256sum -c MANIFEST.sha256
           node --check static/assets/spin.js
+      - name: Collect NOAA SWPC solar activity and shadow agent training
+        run: python -m forecast.space_weather --allow-blocked
       - name: Collect read-only HAARP public diagnostics and antenna notices
         run: python -m forecast.haarp
+      - name: Publish public sensor-agent input-output evidence
+        run: python -m sensor_agents.report
       - name: Prepare bounded public artifact
         run: |
           mkdir -p _site
