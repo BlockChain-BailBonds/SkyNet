@@ -26,11 +26,13 @@ jobs:
         run: |
           python -m unittest discover -s tests -v
           sha256sum -c MANIFEST.sha256
-          node --check static/assets/spin.js
+          node --check static/assets/spin.js && node --check static/assets/cern.js
       - name: Collect NOAA SWPC solar activity and shadow agent training
         run: python -m forecast.space_weather --allow-blocked
       - name: Collect read-only HAARP public diagnostics and antenna notices
         run: python -m forecast.haarp
+      - name: Collect bounded read-only CERN public research metadata
+        run: python -m forecast.cern --allow-blocked
       - name: Publish public sensor-agent input-output evidence
         run: python -m sensor_agents.report
       - name: Prepare bounded public artifact
