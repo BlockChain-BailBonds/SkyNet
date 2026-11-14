@@ -42,3 +42,38 @@ jobs:
           sha256sum -c MANIFEST.sha256
           node --check static/assets/spin.js
           node --check static/assets/cern.js
+
+  workflow_syntax:
+    name: CodeForge Workflow Syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate all CodeForge workflow expressions and shell
+        run: |
+          docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.12 \
+            .github/workflows/codeforge.yml \
+            .github/workflows/codeforge-pr-guards.yml \
+            .github/workflows/codeforge-merge.yml
+
+  sandbox_smoke:
+    name: CodeForge Blue Sandbox Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build trusted Python validator environment
+        run: docker build -t skynet-codeforge-blue -f codeforge/blue.Dockerfile .
+      - name: Execute all tests without network, root, filesystem writes or tokens
+        run: |
+          docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges --pids-limit 256 \
+            --memory 1024m --cpus 2 --user 10001:10001 \
+            --tmpfs /tmp:rw,nosuid,nodev,size=128m \
+            -e PYTHONDONTWRITEBYTECODE=1 \
+            -v "$PWD:/workspace:ro" -w /workspace \
+            skynet-codeforge-blue
