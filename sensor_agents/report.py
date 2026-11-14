@@ -17,6 +17,7 @@ MAP_DOCS = {
     "HAARP.IRI_ARRAY": "HAARP transmission notices",
     "HAARP.RIOMETER": "HAARP SAGO riometer chart",
     "HAARP.OBLIQUE_IONOSONDE": "HAARP oblique ionosonde chart",
+    "HAARP.SEISMIC": "HAARP RFE1B FDSN channel metadata",
 }
 
 
