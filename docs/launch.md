@@ -1,90 +1,51 @@
-# SkyNet Main — launch runbook and release gates
+# SkyNet Main — GitHub Pages launch and acceptance
 
-**Owner:** Matthew Blake Ward, in association with 918 Technologies
+**Maintainer:** 918 Technologies; original integration attribution: Matthew Blake Ward.
 
-**Deployment contract:** The public site is a **static operator frontend**, not
-an internet-facing data acquisition gateway. No live RuView ingestion, camera
-access, satellite detection, enrolled ESP32, or backend success may be claimed
-without direct logs from that exact component.
+## Confirmed failure and repair path (14 November 2026)
 
-## Current blocker (observed 2026-11-13 UTC)
+The last recorded main-branch deployment before this documentation change was [run 43567193636](https://github.com/BlockChain-BailBonds/SkyNet/actions/runs/43567193636). Application tests, public-source collection, and local static packaging completed. `actions/configure-pages@v5` failed with `Get Pages site failed: Not Found`. This is repository Pages provisioning, **not** a CERN dataset parsing failure or a generic backend outage.
 
-- GitHub repository: `BlockChain-BailBonds/SkyNet`, branch `main`.
-- A source validation run completed successfully for main commit
-  `cad9aeed8e278e1821dd2432095aeb22adf62a14`.
-- GitHub Pages run `43528907765` **FAILED** at
-  `actions/configure-pages@v5` after tests and site packaging passed.
-- Job `132241450929` reports:
-  `Get Pages site failed: Not Found`, followed by
-  `Create Pages site failed: Resource not accessible by integration`.
-- The workflow was using `enablement: true`; the default
-  `GITHUB_TOKEN` cannot enable Pages. This patch removes that ineffective
-  request. No credential workaround is required or recommended.
+The workflow now retains a `skynet-pages-ready` downloadable artifact **before** checking the Pages enablement gate. It validates required public files and the CERN metadata snapshot. This makes successful artifact assembly separately verifiable but does **not** publish a website if Pages has not been enabled.
 
-## Required single owner action
+## Required one-time administrator setting
 
-1. Sign into GitHub with administrator access to
-   https://github.com/BlockChain-BailBonds/SkyNet/settings/pages
-2. Under **Build and deployment**, select **GitHub Actions** as **Source**.
-   This creates/enables the Pages site. Do not create a second workflow from a
-   template; this repository already includes `.github/workflows/pages.yml`.
-3. From
-   https://github.com/BlockChain-BailBonds/SkyNet/actions/workflows/pages.yml
-   choose **Run workflow** on `main`, or push a reviewed change to `main`.
-4. Confirm green **Publish SkyNet Main to GitHub Pages** workflow, including
-   `configure-pages`, `upload-pages-artifact`, and `deploy-pages`.
-5. Open the **Pages-provided site URL** and verify HTTPS, 200 response,
-   application assets, forecast panel, and health/consent labels. For the
-   standard project-site URL, use
-   https://blockchain-bailbonds.github.io/SkyNet/ **only after GitHub confirms
-   it**. A code push or green source tests alone are insufficient.
+1. Visit https://github.com/BlockChain-BailBonds/SkyNet/settings/pages while signed into an account with repository administration permission.
+2. Under **Build and deployment**, set **Source → GitHub Actions**.
+3. Do not use a suggested Pages template; `.github/workflows/pages.yml` is already committed.
+4. Open https://github.com/BlockChain-BailBonds/SkyNet/actions/workflows/pages.yml and run `main` using **Run workflow**, or trigger a new main-branch push.
+5. Verify success at `Configure existing GitHub Pages site`, `upload-pages-artifact`, and `deploy-pages` as separate steps. If it fails again, read the specific step log and do not report success.
 
-Reference:
-https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+Official instructions: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
 
-## Deployment gates
+The default `GITHUB_TOKEN` cannot provision Pages via `enablement: true`. That option requires another token with separate administrator-grade permissions, which is not appropriate to commit in workflow source. There is no reason to create an unrestricted PAT for a one-time setting.
 
-| Gate | Required direct evidence | Success label |
+## Deployment evidence gates
+
+| Gate | Direct evidence | Scope of VERIFIED |
 | --- | --- | --- |
-| 1. Source/test | GitHub Actions tests and browser syntax pass | VERIFIED (code only) |
-| 2. Pages artifact | Pages workflow publishes content successfully | VERIFIED (deployment) |
-| 3. HTTPS frontend | GET /SkyNet and key assets return expected bytes over HTTPS | VERIFIED (frontend) |
-| 4. Data freshness | Embedded source timestamp, digest, source link, and successful data-fetch trace | VERIFIED (source access only) |
-| 5. Backend | Public HTTPS /health, authenticated API request, WSS handshake + server logs | VERIFIED (backend only) |
-| 6. Pocket | Approved device ID, authenticated heartbeat, timestamp, nonce/replay checks | VERIFIED (one enrolled device) |
-| 7. RuView | Real authorized hardware source, runtime logs, calibration + signed-frame verification | VERIFIED (specific measurement only) |
-| 8. HAARP | Official public diagnostics response, source hash; numeric measurement only after verified parsing and units | VERIFIED for catalog, UNVERIFIED for measurement |
+| Source verification | Unit tests, manifest checksum, JS syntax all pass | Code only |
+| Public-source collection | Timestamped snapshot with status, source URL, digest | Individual remote response only |
+| Static bundle | `skynet-pages-ready` Actions artifact, path preflight | Packaged site only |
+| Pages configuration | `configure-pages` passes | Pages site provisioned |
+| Pages upload/deploy | Deployment job outputs actual URL | Published frontend |
+| HTTPS check | Fetch actual URL, HTML and assets, status 200 | Public frontend reaches browser |
+| Gateway | Public HTTPS authenticated /health and API test, WSS handshake, server logs | Specific external backend only |
+| Pocket/RuView | Authenticated genuine device heartbeats and consent, hardware measurements | That sensor/session only |
 
-A BLOCKED source must remain BLOCKED. A publicly reachable Pages frontend must
-never be presented as a real sensor gateway. Never fake or seed a sensor state
-as successful field evidence. Keep exact source and measured-vs-simulated labels.
+CERN catalog results and HAARP diagnostic pages are **not** live instrument telemetry. No live detector control, satellite or camera operation, physical sensor enrollment, forecast accuracy or private gateway deployment follows from green Pages CI.
 
-## Backend deployment
+## Artifact troubleshooting
 
-The source tree contains an optional local Python gateway (`server.py`) and
-the separate Chimera backend candidate (`chimera/backend`). Neither is an
-implicitly deployed HTTPS/WSS production gateway. Production requires
-explicitly chosen hosting, authenticated transport, TLS, rate limiting,
-bounded telemetry, permissions, observability and consent/revocation tests.
-Do **not** expose the local unprotected gateway using a public listener.
+- If unit tests fail, fix the failed test before touching Pages settings.
+- If `MANIFEST.sha256` fails, regenerate the hash for the modified tracked files; do not turn off verification.
+- If public CERN endpoints fail, `--allow-blocked` preserves the source error and a safe non-live report.
+- If `skynet-pages-ready` succeeds but `configure-pages` fails, enable Pages in repository Settings. A local artifact is not a served website.
+- If Pages deploy succeeds but the browser 404s, use the exact Pages output URL, not a guessed path; inspect the project base path and generated `index.html`.
+- If assets 404, confirm `static/`, `data/`, `agent/` and `docs/` exist in the staged artifact.
+- If the operator console opens but source evidence is blocked, distinguish stale/missing snapshot from an active negative measurement.
+- Avoid leaking credentials, private telemetry, or participants in public Pages or Actions artifacts.
 
-Operator credentials are requested only during privileged actions and cleared
-after use; never put them in the git repository, Pages HTML, browser storage,
-query strings, analytics or telemetry records.
+## Rollback
 
-## HAARP subsystem
-
-After the HAARP integration is merged, the Pages workflow can refresh bounded
-HAARP source documents approximately every 15 minutes; scheduled GitHub Actions
-are best effort. HAARP array capabilities are static published specifications:
-180 elements, 12×15 grid, 3.6 MW design power. Current transmission state,
-beam, frequency and per-antenna telemetry remain UNKNOWN/NOT PUBLIC.
-
-## Rollback and launch completion
-
-If the Pages deploy fails, review the specific failing step and roll back only
-the offending commit or restore the previous verified revision. Do not remove
-consent and provenance checks to force a launch.
-
-**Launch status is successful only when the Pages deploy and an HTTPS browser
-check are both verified.** Backend and device acceptance are separate gates.
+Review the failing SHA and workflow logs, revert only the breaking change through a reviewed pull request, allow the previous passing Pages workflow to deploy, and repeat the external HTTPS check. Never remove evidence, consent or authentication checks to force a green job.
