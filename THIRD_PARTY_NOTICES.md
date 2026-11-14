@@ -9,6 +9,9 @@ SkyNet is an original integration gateway and dashboard. It can query the follow
 | [Copernicus Data Space](https://dataspace.copernicus.eu/) | Sentinel-1 catalog query | Follow service terms, access and attribution requirements; SkyNet does not bundle Sentinel-1 acquisitions |
 | [NASA GIBS](https://www.earthdata.nasa.gov/data/tools/gibs) | Public satellite imagery visualized via remote map layers | Preserve required NASA/source credit and individual layer metadata |
 | [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) | Optional hotspot data with an individually obtained MAP_KEY | Follow NASA data/service terms and API rules; do not distribute tokens |
+| [USGS Water Services](https://waterservices.usgs.gov/) | Public instantaneous stream-gauge measurements | Preserve station, parameter, unit, qualifier, timestamp, and source attribution |
+| [NOAA CO-OPS](https://tidesandcurrents.noaa.gov/) | Public tide and water-level station observations | Preserve station, datum, units, quality flags, timestamp, and NOAA attribution |
+| [NOAA NDBC](https://www.ndbc.noaa.gov/) | Public buoy meteorological and ocean observations | Preserve station, units, timestamp, and NOAA attribution; missing values are not zero |
 | [OpenStreetMap](https://www.openstreetmap.org/copyright) | Base map tiles/data | Maintain OpenStreetMap attribution; comply with tile usage policy and ODbL obligations where applicable |
 | [Leaflet](https://leafletjs.com/) | Remote browser map library | Observe the applicable upstream software license and attribution requirements |
 

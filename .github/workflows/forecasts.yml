@@ -13,6 +13,8 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.13'}
       - run: python -m forecast.ingest
-      - run: python -m unittest tests.test_spin_mvp -v
+      - name: Collect official station observations
+        run: python -m forecast.environmental_sensors --allow-blocked
+      - run: python -m unittest tests.test_spin_mvp tests.test_environmental_sensors -v
       - uses: actions/upload-artifact@v4
         with: {name: skynet-public-snapshots, path: 'data/public/*.json', retention-days: 7}

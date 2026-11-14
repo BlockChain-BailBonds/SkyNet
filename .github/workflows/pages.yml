@@ -29,6 +29,8 @@ jobs:
           node --check static/assets/spin.js && node --check static/assets/cern.js
       - name: Collect NOAA SWPC solar activity and shadow agent training
         run: python -m forecast.space_weather --allow-blocked
+      - name: Collect official USGS and NOAA station observations
+        run: python -m forecast.environmental_sensors --allow-blocked
       - name: Collect read-only HAARP public diagnostics and antenna notices
         run: python -m forecast.haarp
       - name: Collect bounded read-only CERN public research metadata
@@ -56,6 +58,7 @@ jobs:
               "static/assets/cern.css", "agent/model-manifest.json",
               "docs/cern.md", "data/public/cern-status.json",
               "data/public/space-weather.json",
+              "data/public/environmental-sensors.json",
           )
           for item in required:
               path = root / item
@@ -63,6 +66,9 @@ jobs:
           cern = json.loads((root / "data/public/cern-status.json").read_text())
           assert cern["sources_checked"] == 6 and len(cern["agents"]) == 6
           assert cern["direct_cern_sensor_access"] is False
+          sensors = json.loads((root / "data/public/environmental-sensors.json").read_text())
+          assert sensors["schema_version"] == "1.0" and len(sensors["sources"]) == 7
+          assert all(row["evidence_status"] == "OBSERVED_EVENT" for row in sensors["observations"])
           print("Verified static asset existence and schema; no live detector claim")
           PY
       - name: Retain deployable site even if Pages is disabled
