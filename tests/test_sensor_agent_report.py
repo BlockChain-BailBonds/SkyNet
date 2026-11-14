@@ -2,7 +2,7 @@
 import unittest
 from sensor_agents.report import assemble
 from forecast.space_weather import collect
-from tests.test_solar_agents import NOW, fixture_fetch
+from test_solar_agents import NOW, fixture_fetch
 
 
 class ReportTests(unittest.TestCase):
