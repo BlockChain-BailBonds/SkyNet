@@ -190,9 +190,9 @@ def collect(fetch=bounded_fetch, now=None):
             raw = fetch(url)
             if not isinstance(raw, bytes) or not raw or len(raw) > MAX_BYTES:
                 raise SourceError("invalid or unbounded response")
+            supervisor.ingress(agent_ids[name], raw)
             document = json.loads(raw)
             value = NORMALIZERS[name](document, now)
-            supervisor.ingress(agent_ids[name], raw)
             supervisor.egress(agent_ids[name], value)
             if name == "kp":
                 supervisor.candidate(agent_ids[name], [
@@ -246,6 +246,8 @@ def main(argv=None):
     parser.add_argument("--interval", type=int, default=300,
                         help="watch polling interval in seconds; at least 300")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--allow-blocked", action="store_true",
+                        help="publish explicitly blocked sources without failing the static-site build")
     args = parser.parse_args(argv)
     if args.interval < 300:
         parser.error("minimum watch interval is 300 seconds")
@@ -256,7 +258,7 @@ def main(argv=None):
             print(json.dumps({"at": result["collected_at"], "current_scales":
                               result["status"], "fresh_sources": available}, sort_keys=True), flush=True)
             if not args.watch:
-                return 0 if available else 2
+                return 0 if available or args.allow_blocked else 2
             time.sleep(args.interval)
     except KeyboardInterrupt:
         return 130
