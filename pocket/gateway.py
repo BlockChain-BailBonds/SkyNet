@@ -151,7 +151,7 @@ class PocketStore:
         if not row or not row["enabled"] or row["consent_expires_unix"] <= now:
             raise UplinkError("Device enrollment or consent inactive", 403)
         digest = hashlib.sha256(raw).hexdigest()
-        canonical = f"POST\\n/api/pocket/heartbeat\\n{identity}\\n{stamp}\\n{nonce}\\n{digest}"
+        canonical = f"POST\n/api/pocket/heartbeat\n{identity}\n{stamp}\n{nonce}\n{digest}"
         expected = hmac.new(bytes.fromhex(row["secret_hex"]), canonical.encode("ascii"), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(expected, signature):
             raise UplinkError("Authentication rejected", 401)
@@ -160,7 +160,7 @@ class PocketStore:
         except (UnicodeError, ValueError):
             raise UplinkError("Malformed JSON")
         validate_heartbeat(payload, identity)
-        receipt = hashlib.sha256((identity + "\\n" + stamp + "\\n" + nonce + "\\n" + digest).encode("ascii")).hexdigest()
+        receipt = hashlib.sha256((identity + "\n" + stamp + "\n" + nonce + "\n" + digest).encode("ascii")).hexdigest()
         with self.lock, self._connection() as db:
             db.execute("BEGIN IMMEDIATE")
             db.execute("DELETE FROM nonces WHERE seen_at < ?", (now - MAX_SKEW * 3,))
