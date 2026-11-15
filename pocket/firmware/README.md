@@ -1,6 +1,6 @@
 # SkyNet Pocket firmware — CYD ESP32-2432S028R (N4)
 
-**Status: compiled successfully in GitHub Actions; actual hardware operation UNVERIFIED.** This package builds for the original single-micro-USB ILI9341/XPT2046 CYD with 4 MB flash and no PSRAM. Some dual-USB CYDs use a different LCD controller and require their own profile. This is **not** the GOOUUU ESP32-S3 firmware.
+**Baseline status: compiled successfully in GitHub Actions; the new HTTPS-uplink revision requires fresh CI and hardware validation.** This package builds for the original single-micro-USB ILI9341/XPT2046 CYD with 4 MB flash and no PSRAM. Some dual-USB CYDs use a different LCD controller and require their own profile. This is **not** the GOOUUU ESP32-S3 firmware.
 
 ## Features
 
@@ -10,7 +10,7 @@
 - Configure authorized Wi-Fi, S3 private IPv4 and HTTP port, read-only RuView JSON path, and optional JPEG snapshot path.
 - Poll `/api/status` on the S3. RuView defaults to `/api/ruview` but is explicitly **UNVERIFIED** until it actually responds. A 200 JSON response verifies endpoint availability, not live CSI sensing.
 - Camera tab can fetch one ordinary JPEG snapshot (max 64 KiB, content-length required) from the separately configured S3 path. It does not support MJPEG, RTSP or WebRTC.
-- No Github token, no production deployment, no CSI signal analysis on the original ESP32, and no automatic public uplink.
+- No GitHub token, no production deployment, and no CSI signal analysis on the original ESP32. An **optional signed HTTPS heartbeat uplink** to a separately deployed gateway is now implemented; automatic live ingestion is **not verified** without gateway receipts.
 
 ## Build
 
@@ -48,6 +48,13 @@ Or use `pio run -d pocket/firmware -t upload --upload-port /dev/ttyUSB0` after b
 3. Enter your authorized 2.4 GHz Wi-Fi network and the S3's **actual currently reachable RFC1918 IPv4 address**. The S3 status API must support JSON at `/api/status`.
 4. Enter a RuView JSON path only if the S3 firmware has it. A `/api/ruview` 404 means unsupported path, **not** verified RuView sensing.
 5. Enter an actual S3 camera JPEG snapshot path only if it provides a bounded `image/jpeg` response with Content-Length. No path is presumed to exist; `/capture` is only an example.
-6. Inspect read-only backend logs and sensor output before classifying anything as verified. For production SkyNet Main reporting, the S3/back-end needs separately authenticated HTTPS/WSS ingestion, consent and provenance.
+6. For optional Pocket-to-Main HTTPS uplink, follow [the complete gateway deployment and device-provisioning runbook](../../docs/pocket-uplink.md). Supply an enrolled device ID, unique 32-byte HMAC key and trusted HTTPS CA PEM via the local setup form. HTTPS heartbeat transport does **not** require WSS.
+7. Inspect read-only backend receipts, raw board serial traces and real sensor output before classifying anything as physically verified. A green CI or gateway response is not proof of RuView CSI or camera capture provenance.
 
 Touch **SETUP** then the upper screen area to enter the provisioning AP again. In setup mode, the device stops normal S3 polling. The S3 firmware remains untouched.
+
+## HTTPS heartbeat acceptance gate
+
+The CYD sends bounded JSON status summaries to `POST /api/pocket/heartbeat` every 60 seconds **only after** configuring the public gateway DNS, port, device identity, per-device HMAC secret and trusted TLS CA certificate. Firmware requires NTP time; it signs method, route, device ID, timestamp, nonce and SHA-256 body hash. A trusted 201 acknowledgment with receipt ID is shown as `ACK RECEIVED`. Failed TLS, clock, authentication or transport do not silently downgrade. See [gateway code](../../pocket/gateway.py) and [uplink runbook](../../docs/pocket-uplink.md).
+
+The gateway process is not deployed by this firmware build. Registration/consent, a hosted HTTPS proxy, operator status authentication and direct device telemetry receipt are prerequisites to marking SkyNet Main uplink VERIFIED. Keep S3 firmware unchanged and retain CYD backup.
