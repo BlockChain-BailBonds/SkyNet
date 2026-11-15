@@ -14,6 +14,7 @@ import re
 import sqlite3
 import threading
 import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -23,6 +24,7 @@ SCHEMA = "skynet-pocket-heartbeat/v1"
 MAX_BODY = 1024
 MAX_SKEW = 300
 FRESHNESS = 180
+RETENTION_SECONDS = 7 * 86400
 DEVICE_RE = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 HEX32_RE = re.compile(r"^[a-f0-9]{32}$")
 HEX64_RE = re.compile(r"^[a-f0-9]{64}$")
@@ -111,10 +113,18 @@ class PocketStore:
         self.lock = threading.Lock()
         self._init_db()
 
+    @contextmanager
     def _connection(self):
         db = sqlite3.connect(self.database, timeout=8)
-        db.execute("PRAGMA busy_timeout=8000")
-        return db
+        try:
+            db.execute("PRAGMA busy_timeout=8000")
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
 
     def _init_db(self):
         with self._connection() as db:
@@ -164,6 +174,7 @@ class PocketStore:
         with self.lock, self._connection() as db:
             db.execute("BEGIN IMMEDIATE")
             db.execute("DELETE FROM nonces WHERE seen_at < ?", (now - MAX_SKEW * 3,))
+            db.execute("DELETE FROM receipts WHERE received_at < ?", (now - RETENTION_SECONDS,))
             try:
                 db.execute("INSERT INTO nonces VALUES (?,?,?)", (identity, nonce, now))
             except sqlite3.IntegrityError:
@@ -229,7 +240,7 @@ def handler_for(store: PocketStore):
             return
 
         def reply(self, status, payload):
-            data = json.dumps(payload, separators=(",", ":"), allow_nan=False).encode("utf-8")
+            data = b"" if status == 204 else json.dumps(payload, separators=(",", ":"), allow_nan=False).encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
             self.send_header("Cache-Control", "no-store")
@@ -271,7 +282,10 @@ def handler_for(store: PocketStore):
                 length = int(self.headers.get("Content-Length", "-1"))
                 if length < 1 or length > MAX_BODY:
                     raise UplinkError("Body length rejected", 413)
+                self.connection.settimeout(8)
                 raw = self.rfile.read(length)
+                if len(raw) != length:
+                    raise UplinkError("Incomplete request body", 400)
                 headers = {key.lower(): value for key, value in self.headers.items()}
                 return self.reply(201, store.accept(headers, raw))
             except UplinkError as exc:
@@ -295,6 +309,8 @@ def main():
     dbpath = os.environ.get("SKYNET_POCKET_DB", "pocket-telemetry.sqlite3")
     devices = load_devices(config)
     store = PocketStore(dbpath, devices, token, os.environ.get("SKYNET_POCKET_DASHBOARD_ORIGIN", ""))
+    if os.name == "posix":
+        os.chmod(dbpath, 0o600)
     if args.check:
         print("Pocket gateway configuration and storage validated; no listener started")
         return
