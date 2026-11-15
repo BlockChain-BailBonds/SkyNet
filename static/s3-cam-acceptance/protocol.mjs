@@ -143,6 +143,8 @@ export function classifyStatus(payload, expectedId, now = Date.now()) {
   if (payload.synthetic === true || payload.simulated === true || /synthetic|simulation|mock|demo|fixture/.test(source)) {
     return {state:'BLOCKED',reason:'Synthetic or simulated data is not live device evidence'};
   }
+  if (!source) return {state:'UNVERIFIED',reason:'Missing explicit physical-device source provenance'};
+  if (!/(physical|hardware|esp32|device|sensor)/.test(source)) return {state:'UNVERIFIED',reason:'Unrecognized source type; physical origin not established'};
   const id = String(payload.device_id ?? payload.deviceId ?? payload.chip_id ?? '');
   if (!expectedId || !id) return {state:'UNVERIFIED',reason:'Missing expected or reported exact device identifier'};
   if (id !== expectedId) return {state:'FAILED',reason:'Device identifier does not match selected board'};
