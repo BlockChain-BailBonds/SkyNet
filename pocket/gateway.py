@@ -276,9 +276,15 @@ def handler_for(store: PocketStore):
             return self.reply(200, store.receipts())
 
         def do_POST(self):
-            if urlsplit(self.path).path != "/api/pocket/heartbeat":
+            if self.path != "/api/pocket/heartbeat":
                 return self.reply(404, {"error": "Unknown ingestion route"})
             try:
+                signed_headers = ("Content-Length", "Content-Type", "X-SkyNet-Device",
+                                  "X-SkyNet-Timestamp", "X-SkyNet-Nonce", "X-SkyNet-Signature")
+                if any(len(self.headers.get_all(name, [])) != 1 for name in signed_headers):
+                    raise UplinkError("Missing or duplicate signed transport headers", 400)
+                if self.headers.get("Transfer-Encoding"):
+                    raise UplinkError("Chunked request body rejected", 400)
                 length = int(self.headers.get("Content-Length", "-1"))
                 if length < 1 or length > MAX_BODY:
                     raise UplinkError("Body length rejected", 413)
