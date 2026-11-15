@@ -77,11 +77,11 @@
     <div class="actions"><button class="btn" id="checkConsent">Read consent endpoint</button></div><div id="consentResults"></div>
     <div class="divider"></div><h3>Required consent record</h3><p class="note">Scope, operator/site identity, opt-in timestamp, validity period, withdrawal/revocation mechanism, retention policy and permission to transmit. A copied invitation URL is not proof of continuing consent.</p>
    </article>
-   <article class="card"><div class="head"><h2>Pocket gateway receipts</h2><span class="badge BLOCKED">No endpoint assumed</span></div><p class="note">Enter real, documented <b>read-only</b> routes from your running gateway. The repository does not establish a production device or receipt API, so none is guessed.</p>
+   <article class="card"><div class="head"><h2>Pocket gateway receipts</h2><span class="badge BLOCKED">Gateway not established</span></div><p class="note">The gateway implementation documents <code>/api/pocket/status</code> and <code>/api/pocket/receipts</code>. Enter the real authenticated HTTPS gateway origin; a source-code route is not proof of a running backend.</p>
     <div class="field"><label for="devicePath">Device enrollment/heartbeat route</label><input id="devicePath" value="/api/pocket/status" autocomplete="off" spellcheck="false" placeholder="/your/documented/device/status"/></div>
     <div class="field"><label for="receiptPath">Authenticated telemetry receipts route</label><input id="receiptPath" value="/api/pocket/receipts" autocomplete="off" spellcheck="false" placeholder="/your/documented/receipt/status"/></div>
     <div class="actions"><button class="btn primary" id="checkDevices">Probe read-only routes</button></div><div id="deviceResults"></div>
-    <div class="divider"></div><h3>What counts as direct device evidence?</h3><p class="note">Exact board ID and firmware hash, enrolled public-key registration, signed nonce/timestamp acceptance, replay verification, consent ID, gateway receipt ID, and fresh heartbeat linked to that device. Camera/CSI/RuView sensing additionally needs physical capture/calibration logs.</p>
+    <div class="divider"></div><h3>What counts as direct device evidence?</h3><p class="note">Exact board ID and firmware hash, enrolled software HMAC key (not hardware attestation), signed nonce/timestamp acceptance, replay verification, approved consent reference, gateway receipt ID, and fresh heartbeat linked to that device. Camera/CSI/RuView sensing additionally needs physical capture/calibration logs.</p>
    </article>
   </div>
   <article class="card" style="margin-top:17px"><div class="head"><h2>Explicitly withheld claims</h2><span class="hint">Never auto-promoted by HTTP 200</span></div><div id="deviceMilestones"></div></article>
@@ -123,7 +123,7 @@ const states=[
  {id:"wss",group:"gateway",name:"Public WSS handshake",hint:"WebSocket transport only",url:ROOT+"/blob/main/docs/architecture.md",ttl:120000},
  {id:"consentApi",group:"pocket",name:"Consent-status API reachability",hint:"Phone-motion route, not Pocket enrollment",url:ROOT+"/blob/main/SMS_ENROLLMENT_GUIDE.md",ttl:120000},
  {id:"consent",group:"pocket",name:"Valid sensor consent receipts",hint:"Signed/traceable opt-in and revocation evidence",url:ROOT+"/blob/main/docs/device-enrollment.md",ttl:120000},
- {id:"enroll",group:"pocket",name:"Pocket ESP32 exact-device enrollment",hint:"Registered public key, firmware hash and identity",url:ROOT+"/blob/main/docs/device-enrollment.md",ttl:120000},
+ {id:"enroll",group:"pocket",name:"Pocket ESP32 exact-device enrollment",hint:"Registered HMAC software credential, approval and fresh gateway receipt; not hardware identity",url:ROOT+"/blob/main/docs/device-enrollment.md",ttl:120000},
  {id:"telemetry",group:"pocket",name:"Authenticated telemetry ingress",hint:"Signed nonce/timestamp acceptance and gateway receipt",url:ROOT+"/blob/main/docs/device-enrollment.md",ttl:120000},
  {id:"heartbeats",group:"pocket",name:"Fresh device heartbeats",hint:"Acknowledged by trusted gateway, within freshness window",url:ROOT+"/blob/main/docs/device-enrollment.md",ttl:180000},
  {id:"ruview",group:"pocket",name:"Physical RuView/CSI & camera validation",hint:"No simulation or API reachability substitution",url:ROOT+"/blob/main/docs/evidence-report.md",ttl:180000}
