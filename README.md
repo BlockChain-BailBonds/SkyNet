@@ -40,7 +40,7 @@ Do not assume the conventional project URL `https://blockchain-bailbonds.github.
 - **Shadow analysis:** only validated timestamped numeric sources may produce unapproved descriptive candidates. No automatic threshold/model promotion.
 - **Local RuView integration:** an optional local HTTP gateway supports constrained read-only RuView health and sensing summaries. A running local process is not a deployed public service.
 - **Opt-in invitations:** a separate HTTPS gateway is necessary for phone-motion enrollment; the Pages website alone cannot accept enrollment POSTs or authenticated ESP32 uplinks.
-- **SkyNet Pocket:** firmware scaffolding and simulator only; actual sensor enrollment, CSI reporting, camera, or hardware acceptance require separate direct evidence.
+- **SkyNet Pocket CYD:** candidate firmware for the original ESP32-2432S028R (ESP32E N4), with 320×240 ILI9341 touchscreen, XPT2046 touch input, local Wi-Fi provisioning, read-only S3 status/RuView JSON checks, and an optional bounded JPEG snapshot viewer. **CI compilation passed; a physical CYD displaying the UI has since been photographed.** Live sensing, camera provenance, and end-to-end acceptance remain **UNVERIFIED**. The Pocket simulator is separate.
 
 ## Architecture and trust boundaries
 
@@ -104,6 +104,33 @@ The initial 14 November 2026 CI network smoke test retrieved **five of six** pub
 Four NOAA agents, nine HAARP source agents, and six CERN public-source agents are defined. They have independent source statuses; they are **not nineteen fully trained physical sensors**. NOAA sensor reporting uses a source-specific hash chain and a quality-gated **shadow-only** descriptive Kp candidate. HAARP and CERN catalog agents record metadata; they cannot generate meaningful numerical sensor training without actual authorized, licensed, calibrated observations.
 
 Never automatically promote checkpoints or advertise forecasting accuracy without time-separated validation, calibration/provenance, baseline comparison, red/blue tests, and an explicit operator approval and rollback target. See [sensor agent design](docs/sensor-agents.md).
+
+## SkyNet Pocket CYD / S3 — hardware evidence snapshot (14 November 2026)
+
+**Development status:** [draft PR #12](https://github.com/BlockChain-BailBonds/SkyNet/pull/12) contains the CYD candidate firmware and build guide. The [CYD GitHub Actions build #2](https://github.com/BlockChain-BailBonds/SkyNet/actions/runs/43585114254) passed compilation and packaging and uploaded a checksum-listed 4 MB flash image. The firmware PR has **not been merged** into `main`. Compilation is not proof of physical firmware provenance or successful sensing; the already-flashed GOOUUU ESP32-S3 must not be overwritten with this CYD image.
+
+**Evidence boundary:** Operator-provided photographs on 14 November 2026 show a powered CYD rendering the SkyNet Pocket UI, and a separate photographed local Codex evaluation. The raw serial trace, boot log, firmware readback, HTTP payloads, JPEG bytes, measurement CSV and evaluation script output have **not been committed with this README**. Measurements below are transcribed as *reported local test results*, not independently audited detection performance. Do not publish private network addresses, Wi-Fi passwords, temporary AP keys, device-derived secrets, raw CSI traces or camera captures without authorization and sanitization.
+
+| Check | Operator-photograph observation or public CI evidence | Classification and limitation |
+| --- | --- | --- |
+| CYD UI | Physical LCD visibly renders the SkyNet Pocket status screen and STATUS/CAMERA/SETUP buttons | **VERIFIED — photographed display only**; touch input and flashed-image hash not independently checked |
+| Wi-Fi and S3 API | Screen reports `Wi-Fi CONNECTED` and `S3 HTTP 200 JSON` | **REPORTED**; independent packet/serial evidence **UNVERIFIED** |
+| RuView | Screen reports `RuView API RESPONDS` | **REPORTED**; an HTTP response alone does not verify CSI capture, a person, or localization |
+| Camera | Later photo changes status from `Camera UNVERIFIED` to `Camera JPEG RECEIVED` | **REPORTED**; original S3 sensor, live scene, image freshness, and display of the actual frame **UNVERIFIED** |
+| Memory | Screen reports heap of 242,508 B in the later photograph | **REPORTED**; not a sustained memory stability test |
+| Real-time SkyNet Main ingestion | No authenticated end-to-end device heartbeat or backend trace supplied | **UNVERIFIED** |
+
+### RSSI evaluation shown in the local Codex session
+
+| Experiment | Values visible in operator photograph | Assessment |
+| --- | --- | --- |
+| Moving human vs empty | Moving RSSI **−36.7 dBm**; empty baselines **−45.1** and **−48.6 dBm**; moving-vs-empty RSSI AUC **0.924**; screen reports signal returning toward baseline after departure | **REPORTED PASS for this local test setup only**; independent raw-trace and held-out validation **UNVERIFIED** |
+| Stationary human presence | Still-person RSSI **−45.0 dBm**; initial empty RSSI **−45.1 dBm** | **FAILED** in the reported test: indistinguishable signal distributions |
+| Zone A vs Zone B | Zone A mean **−45.7 dBm**, Zone B mean **−47.1 dBm**; reported three-feature classification accuracy **66.0%** | **FAILED** in the reported test: overlapping distributions and insufficient localization accuracy |
+
+The motion result is not proof of general human detection, stationary occupancy, reliable location, or RuView **CSI**. RSSI is sensitive to device placement, interference, environmental changes and test leakage. There is no claimed production detection accuracy.
+
+**Smallest safe next validation:** preserve the already-working firmware and baseline; capture redacted build ID/flash hash and CYD serial log; confirm each touchscreen button; record S3 `/api/status` and the configured RuView response with timestamps and source identifiers; demonstrate two time-separated S3 camera images of a deliberately changed scene; collect time-separated, consented RSSI/CSI ground-truth trials for movement, still presence and two zones; evaluate held-out sessions with confusion matrices and confidence intervals before claiming CSI sensing or localization. Gate any merge, deployment, or authenticated external ingestion on review of evidence and existing protection checks.
 
 ## Evidence labels
 
