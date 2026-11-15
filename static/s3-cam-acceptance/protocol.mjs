@@ -161,5 +161,6 @@ export function safeEvidenceLink(value) {
   if (!value) return '';
   const u = secureEndpoint(value);
   if (u.protocol !== 'https:') throw Error('Evidence URL must be HTTPS');
+  if (u.search) throw Error('Remove query parameters from evidence URLs to avoid persisting credentials');
   return u.href;
 }
