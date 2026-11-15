@@ -78,8 +78,8 @@
     <div class="divider"></div><h3>Required consent record</h3><p class="note">Scope, operator/site identity, opt-in timestamp, validity period, withdrawal/revocation mechanism, retention policy and permission to transmit. A copied invitation URL is not proof of continuing consent.</p>
    </article>
    <article class="card"><div class="head"><h2>Pocket gateway receipts</h2><span class="badge BLOCKED">No endpoint assumed</span></div><p class="note">Enter real, documented <b>read-only</b> routes from your running gateway. The repository does not establish a production device or receipt API, so none is guessed.</p>
-    <div class="field"><label for="devicePath">Device enrollment/heartbeat route</label><input id="devicePath" autocomplete="off" spellcheck="false" placeholder="/your/documented/device/status"/></div>
-    <div class="field"><label for="receiptPath">Authenticated telemetry receipts route</label><input id="receiptPath" autocomplete="off" spellcheck="false" placeholder="/your/documented/receipt/status"/></div>
+    <div class="field"><label for="devicePath">Device enrollment/heartbeat route</label><input id="devicePath" value="/api/pocket/status" autocomplete="off" spellcheck="false" placeholder="/your/documented/device/status"/></div>
+    <div class="field"><label for="receiptPath">Authenticated telemetry receipts route</label><input id="receiptPath" value="/api/pocket/receipts" autocomplete="off" spellcheck="false" placeholder="/your/documented/receipt/status"/></div>
     <div class="actions"><button class="btn primary" id="checkDevices">Probe read-only routes</button></div><div id="deviceResults"></div>
     <div class="divider"></div><h3>What counts as direct device evidence?</h3><p class="note">Exact board ID and firmware hash, enrolled public-key registration, signed nonce/timestamp acceptance, replay verification, consent ID, gateway receipt ID, and fresh heartbeat linked to that device. Camera/CSI/RuView sensing additionally needs physical capture/calibration logs.</p>
    </article>
@@ -152,8 +152,8 @@ function next(){
  else if(current(g)!=="VERIFIED")v=["01","Inspect publishing workflow","Verify the current Pages job and GitHub Pages configuration before claiming frontend delivery.",g.url];
  else if(current(p)!=="VERIFIED")v=["02","Verify published HTML","Request the public root and validate that a real SkyNet page is served. A successful workflow alone is insufficient.",p.url];
  else if(current(h)!=="VERIFIED")v=["03","Probe independent HTTPS gateway","Enter the actual, authorized gateway origin and run a read-only /api/health check.",ROOT+"/blob/main/docs/deployment.md"];
- else if(current(w)!=="VERIFIED")v=["04","Probe secure WebSocket transport","Check WSS handshake only; do not send fabricated telemetry or call an open socket ingestion.",ROOT+"/blob/main/docs/architecture.md"];
- else v=["05","Obtain signed consent and device receipts","Verify enrollment public keys, revocation/consent records, one authenticated message acknowledgment and a fresh heartbeat from the exact ESP32.",ROOT+"/blob/main/docs/device-enrollment.md"];
+ else if(current(m.get("heartbeats"))!=="VERIFIED")v=["04","Verify Pocket HTTPS uplink","Enter the HTTPS gateway and check authenticated device status and receipts. WSS is not needed for signed HTTPS heartbeats.",ROOT+"/blob/main/docs/pocket-uplink.md"];
+ else v=["05","Verify physical sensing","The gateway has a signed heartbeat; validate CSI and camera provenance independently.",ROOT+"/blob/main/docs/evidence-report.md"];
  $("nextRank").textContent="GATE "+v[0];$("nextTitle").textContent=v[1];$("nextDesc").textContent=v[2];$("nextLink").href=v[3];
  const queue=[v,["NEXT","Verify gateway replay rejection","With a consented test device and approved test plan, review existing replay rejection logs and signature/nonce verification; no write from this console.",ROOT+"/blob/main/docs/device-enrollment.md"],["NEXT","Verify physical sensing separately","Review exact-board serial logs, camera/CSI hardware traces and calibration. Simulators cannot graduate this gate.",ROOT+"/blob/main/docs/evidence-report.md"]];
  $("queue").innerHTML=queue.map((x,i)=>'<div class="rowline"><div><strong><span class="stepNum">'+safe(x[0])+'</span> · '+safe(x[1])+'</strong><p>'+safe(x[2])+'</p></div><div class="stateCol">'+link(x[3],"Procedure ↗")+'</div></div>').join("")
@@ -264,15 +264,36 @@ async function checkConsent(){
 }
 async function checkDevices(){
  const headers=credentialHeaders();
- for(const [field,id,label] of [["devicePath","enroll","Device enrollment/heartbeat"],["receiptPath","telemetry","Telemetry receipt"]]){
+ let fresh=0,validReceipts=0;
+ if(!headers.Authorization) {
+  for(const id of ["enroll","telemetry","heartbeats"])put(id,"BLOCKED","Operator token required for private gateway receipts");
+  $("deviceResults").textContent="Enter the operator token; it is cleared as soon as the check starts.";
+  return;
+ }
+ for(const [field,id,label,schema] of [["devicePath","enroll","Device enrollment/heartbeat","skynet-pocket-status/v1"],["receiptPath","telemetry","Telemetry receipt","skynet-pocket-receipts/v1"]]){
   if(!$(field).value.trim()){put(id,"BLOCKED","Exact documented read-only gateway route not configured");continue}
   try{
    const {data,url}=await authGet(field,headers);
-   if(!data||typeof data!=="object")throw new Error("Unexpected JSON shape");
-   put(id,"UNVERIFIED",label+" endpoint returned JSON, but receipt cryptography, exact-device provenance and consent have not been validated",url)
-  }catch(e){$("credential").value="";put(id,"BLOCKED","No usable trusted receipt: "+String(e.message).slice(0,125))}
+   if(!data||data.schema!==schema)throw new Error("Unexpected gateway protocol or schema");
+   if(id==="enroll") {
+    if(!Array.isArray(data.devices) || data.scope!=="authenticated_gateway_ingress_only_not_physical_sensing")throw new Error("Invalid device status envelope");
+    fresh=data.devices.filter(d=>d.ingress_status==="VERIFIED" &&
+      typeof d.last_receipt==="string" && /^[a-f0-9]{64}$/.test(d.last_receipt) &&
+      typeof d.age_seconds==="number" && d.age_seconds>=0 && d.age_seconds<=180 &&
+      typeof d.consent_ref==="string" && d.consent_ref.length>0).length;
+    put("enroll",fresh>0?"VERIFIED":"BLOCKED",fresh+" device(s) with authenticated gateway receipts, current consent references and fresh status. Physical origin NOT independently verified.",url);
+    put("heartbeats",fresh>0?"VERIFIED":"BLOCKED",fresh>0?fresh+" fresh signed heartbeat(s) within 180 seconds":"No fresh signed device heartbeat",url);
+    put("consent","UNVERIFIED","Configured gateway consent reference for "+fresh+" device(s); independent participant consent proof remains required",url);
+   } else {
+    if(!Array.isArray(data.receipts))throw new Error("Invalid receipt envelope");
+    validReceipts=data.receipts.filter(r=>r.authenticated===true &&
+      typeof r.receipt==="string" && /^[a-f0-9]{64}$/.test(r.receipt)).length;
+    put(id,validReceipts>0&&fresh>0?"VERIFIED":"BLOCKED",
+      validReceipts+" HMAC-authenticated gateway receipt(s); fresh ingress devices: "+fresh+". No CSI/camera proof implied.",url);
+   }
+  }catch(e){put(id,"BLOCKED","No usable authenticated receipt: "+String(e.message).slice(0,125))}
  }
- $("deviceResults").textContent="Reachability checks cannot verify enrolled physical ESP32 nodes. Supply signed evidence with source/identity and inspect server-side verification logs."
+ $("deviceResults").textContent=fresh+" fresh Pocket device(s); "+validReceipts+" authenticated receipt(s). These prove gateway ingress only—not physical sensor acceptance.";
 }
 function exportLedger(){
  const payload={schema:"skynet-ops-evidence/v1",exported_at:now(),repository:ROOT,scope:"Read-only browser observations; NOT device acceptance",milestones:states.map(s=>{const x=m.get(s.id);return {id:x.id,name:x.name,status:current(x),detail:x.detail,observed_at:x.observed,stale:stale(x),source:x.url}}),operator_references:notes,events:events};
