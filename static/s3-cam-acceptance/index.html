@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>SkyNet · S3-CAM Acceptance Console | 918 Technologies</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-icon">S<span>9</span></div><div><strong>SKYNET</strong><small>918 TECHNOLOGIES</small></div></div>
+    <div class="side-label">ACCEPTANCE SYSTEMS</div>
+    <nav id="nav" aria-label="Console sections">
+      <button class="nav-item active" data-panel="overview"><span>◈</span> Overview</button>
+      <button class="nav-item" data-panel="preflight"><span>⌁</span> Preflight &amp; flash gate</button>
+      <button class="nav-item" data-panel="camera"><span>▣</span> Camera validation</button>
+      <button class="nav-item" data-panel="gateway"><span>⌘</span> API &amp; gateway</button>
+      <button class="nav-item" data-panel="evidence"><span>≡</span> Evidence &amp; regression</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="side-label">TRUST BOUNDARY</div>
+      <p>Browser console only. No automatic erase, flash, sensor enrollment, or production deployment.</p>
+      <a href="https://github.com/BlockChain-BailBonds/SkyNet" target="_blank" rel="noopener noreferrer">SkyNet source ↗</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="eyebrow"><span class="live-dot"></span> HARDWARE ACCEPTANCE / LOCAL EVIDENCE</div>
+      <div class="top-right"><span class="pill muted">NO DEVICE SESSION</span><a href="https://github.com/BlockChain-BailBonds/SkyNet/actions" target="_blank" rel="noopener noreferrer">Repository checks ↗</a></div>
+    </header>
+    <section class="hero">
+      <div><div class="eyebrow gold">SKYNET / DEVICE OPERATIONS</div><h1>S3-CAM <em>Acceptance Console</em></h1><p>Read-only identification → image provenance → gated flash authorization → camera proof → SkyNet reporting.</p></div>
+      <div class="hero-mark">S3<span> / </span>CAM<small>N16R8 · GOOUUU</small></div>
+    </section>
+    <div class="warning"><strong>Evidence-first.</strong> This console does not prove physical flashing, camera origin, CSI sensing, RuView detection, or live ingestion. Only direct, exact-device logs and correlated checks can support those claims.</div>
+    <section class="profile-wrap">
+      <div class="section-heading"><h2>Target profile</h2><span>Isolated records · never copy results between boards</span></div>
+      <div class="profiles" id="profiles">
+        <button class="profile selected" data-profile="cam"><small>PRIMARY TARGET</small><strong>GOOUUU ESP32-S3 N16R8-CAM</strong><span>New camera acceptance · 16 MB flash / 8 MB PSRAM are claims to verify</span></button>
+        <button class="profile" data-profile="s3"><small>PRESERVE BASELINE</small><strong>Already-flashed separate S3</strong><span>Read-only verification · do not replace its firmware</span></button>
+        <button class="profile" data-profile="cyd"><small>SEPARATE WORKFLOW</small><strong>ESP32E N4 CYD Pocket</strong><span>Touchscreen ESP32-2432S028R · never use S3 image</span></button>
+      </div>
+    </section>
+    <section class="metrics" aria-label="Evidence summary">
+      <div class="metric"><span>VERIFIED</span><strong id="countVerified">0</strong><small>Evidence-specific checks</small></div>
+      <div class="metric"><span>UNVERIFIED</span><strong id="countUnverified">11</strong><small>Awaiting source logs</small></div>
+      <div class="metric"><span>BLOCKED</span><strong id="countBlocked">0</strong><small>Missing prerequisites</small></div>
+      <div class="metric"><span>FAILED</span><strong id="countFailed">0</strong><small>Validation defects</small></div>
+    </section>
+    <div class="workspace">
+      <section class="panel is-visible" id="panel-overview">
+        <div class="section-heading"><h2>Smallest-first test plan</h2><span id="profileLabel">Selected: camera S3</span></div>
+        <div class="work-grid">
+          <div><div id="stepList" class="steps"></div></div>
+          <div class="stack">
+            <article class="card next-card">
+              <div class="eyebrow gold">NEXT SAFE ACTION</div><h3 id="nextTitle">Read-only USB enumeration</h3><p id="nextDescription">Collect source evidence without erasing or flashing.</p><button id="goNext" class="primary">Open validation step ↗</button>
+            </article>
+            <article class="card"><h3>Report provenance</h3><p>Assertions are scoped to one selected board and one evidence source. A passing host parser is <b>not</b> a passed physical camera acceptance test.</p><div class="mini-links"><a href="https://github.com/BlockChain-BailBonds/SkyNet/blob/main/README.md" target="_blank" rel="noopener noreferrer">Current SkyNet evidence ↗</a><a href="https://github.com/BlockChain-BailBonds/SkyNet/actions/workflows/pages.yml" target="_blank" rel="noopener noreferrer">Pages publishing workflow ↗</a></div></article>
+            <article class="card"><h3>System boundary</h3><div class="boundary"><span>ESP32-S3-CAM</span><b>→</b><span>Authorized HTTPS/WSS gateway</span><b>→</b><span>GitHub Pages UI</span></div><p>No direct camera upload to GitHub Pages. CSI/RuView and downstream training remain independently gated.</p></article>
+          </div>
+        </div>
+      </section>
+      <section class="panel" id="panel-preflight">
+        <div class="section-heading"><h2>Read-only preflight &amp; approval</h2><span>Do not connect this panel to a flasher</span></div>
+        <div class="two-col">
+          <article class="card">
+            <div class="eyebrow gold">01 / IDENTITY</div><h3>USB &amp; exact chip identification</h3><p>Run host-side read-only identification. Record the actual chip, MAC or eFuse identifier, flash size, board revision, and camera sensor evidence. CH340 USB IDs describe the bridge—not the S3 board pinout.</p>
+            <label>Device identifier from direct log<input id="deviceId" placeholder="Exact chip/device ID, not a nickname" autocomplete="off"></label>
+            <label>Boot ID / build fingerprint<input id="bootId" placeholder="Evidence from serial boot log" autocomplete="off"></label>
+            <label>USB and chip log<textarea id="usbLog" rows="5" placeholder="Paste raw timestamped host read-only identification output"></textarea></label>
+            <div class="buttonrow"><button id="checkIdentity" class="primary">Evaluate host evidence</button><button data-copy="python -m esptool --port PORT chip_id">Copy read-only chip ID command</button></div>
+            <output id="identityResult" class="result">UNVERIFIED · No exact-device log supplied.</output>
+          </article>
+          <article class="card"><div class="eyebrow gold">02 / BOARD &amp; CAMERA</div><h3>Revision-specific camera pinout</h3><p>Never substitute generic ESP32-S3 camera GPIO tables. Verify the schematic and observed sensor identity for this precise GOOUUU revision.</p>
+            <label>Observed board revision<input id="boardRev" placeholder="Photo / silkscreen ID"></label>
+            <label>Observed camera sensor<input id="sensorId" placeholder="e.g. sensor register evidence, not a guess"></label>
+            <label>Pinout / schematic evidence URL<input id="pinoutUrl" type="url" placeholder="https:// exact source"></label>
+            <label>Camera pin mapping (user-confirmed)<textarea id="pinout" rows="5" placeholder="PWDN, RESET, XCLK, SIOD, SIOC, D0–D7, VSYNC, HREF, PCLK..."></textarea></label>
+            <button id="recordPinout">Record pinout evidence</button><output id="pinoutResult" class="result">UNVERIFIED · Pinout not established.</output>
+          </article>
+          <article class="card">
+            <div class="eyebrow gold">03 / IMAGE PROVENANCE</div><h3>Flash image &amp; offset</h3><p>Hash the exact image locally. There is no assumed firmware offset or permitted erase range. A matching digest validates file bytes, not device contents.</p>
+            <label>Firmware binary<input id="imageFile" type="file" accept=".bin,.img,application/octet-stream"></label>
+            <label>Expected SHA-256<input id="imageSha" placeholder="64 hexadecimal characters" spellcheck="false"></label>
+            <label>Documented flash offset<input id="flashOffset" placeholder="0x... (from the exact image manifest)" spellcheck="false"></label>
+            <label>Image manifest / CI artifact URL<input id="manifestUrl" type="url" placeholder="https:// exact artifact"></label>
+            <button class="primary" id="checkImage">Hash &amp; verify image</button><output id="imageResult" class="result">UNVERIFIED · No image bytes checked.</output>
+          </article>
+          <article class="card">
+            <div class="eyebrow gold">04 / BACKUP PROVENANCE</div><h3>Existing firmware backup</h3><p>Read-back first using your authorized host tool. This browser hashes an existing backup; it does not read flash or establish that the backup came from the selected chip.</p>
+            <label>Flash read-back file<input id="backupFile" type="file" accept=".bin,.img,application/octet-stream"></label>
+            <label>Backup procedure / log URL<input id="backupUrl" type="url" placeholder="https:// exact readback evidence"></label>
+            <button id="checkBackup">Calculate backup SHA-256</button><output id="backupResult" class="result">UNVERIFIED · No backup hashed.</output>
+          </article>
+        </div>
+        <article class="card approval">
+          <div><div class="eyebrow gold">05 / EXPLICIT HUMAN AUTHORIZATION</div><h3>Flash authorization checkpoint</h3><p>Not a flash button. This records a scoped approval only after matching image bytes, read-back hash, and chip identity. An independent approval in the actual flashing tool is still required. Selecting the already-flashed S3 or CYD always blocks this gate.</p></div>
+          <label class="checkline"><input id="approveBox" type="checkbox"> I approve a future write for this exact target after independently reviewing the device ID, offset, image SHA and backup.</label>
+          <label>Repeat selected device identifier<input id="approveId" autocomplete="off" placeholder="Exact device ID"></label>
+          <label>Enter APPROVE FLASH<input id="approvePhrase" autocomplete="off" placeholder="APPROVE FLASH"></label>
+          <button id="recordApproval" class="danger">Record approval · does not flash</button><output id="approvalResult" class="result">BLOCKED · Preflight prerequisites missing.</output>
+        </article>
+      </section>
+      <section class="panel" id="panel-camera">
+        <div class="section-heading"><h2>Serial &amp; camera acceptance</h2><span>All commands operator-initiated; no serial transmit from this page</span></div>
+        <article class="card">
+          <div class="eyebrow gold">06–08 / BOOT &amp; COMMANDS</div><h3>Capture real serial output</h3><p>Record reset/build banner and exact chip ID in the boot log. Copy these commands only after identifying the firmware’s command transport. Paste raw responses without truncation.</p>
+          <div class="command-grid">
+            <button data-copy="STATUS"><code>STATUS</code><span>Copy command</span></button>
+            <button data-copy="CAM STATUS"><code>CAM STATUS</code><span>Copy command</span></button>
+            <button data-copy="CAM CAPTURE"><code>CAM CAPTURE</code><span>Copy command</span></button>
+          </div>
+          <label>Boot and command-response log<textarea id="bootLog" rows="7" placeholder="Timestamped physical serial output with boot ID, STATUS, CAM STATUS, CAM CAPTURE responses"></textarea></label>
+          <button id="checkBoot">Check boot/command receipt</button><output id="bootResult" class="result">UNVERIFIED · No boot trace.</output>
+        </article>
+        <article class="card">
+          <div class="eyebrow gold">09 / FRAME INTEGRITY</div><h3>JPEG stream reconstruction</h3><p>Strict parser accepts <code>CAM_BEGIN id=... bytes=...</code>, sequential <code>CAM_DATA seq=... b64=...</code> (or <code>hex=</code>), and <code>CAM_END bytes=... crc32=...</code>. Duplicate, missing, malformed, truncated, or CRC-invalid frames fail.</p>
+          <div class="two-col tight">
+            <label>Capture transport log<input type="file" id="captureFile" accept=".txt,.log,.csv,text/plain"><span class="fieldnote">A pasted log is treated as operator-supplied, not independently attested.</span></label>
+            <div class="buttonrow right"><button id="syntheticSample">Load labeled synthetic example</button><button id="parseCapture" class="primary">Validate and reconstruct</button></div>
+          </div>
+          <label class="sr-only" for="captureLog">Capture log</label>
+          <textarea id="captureLog" rows="9" spellcheck="false" class="mono" placeholder="CAM_BEGIN id=frame-01 bytes=...&#10;CAM_DATA id=frame-01 seq=0 b64=...&#10;CAM_END id=frame-01 bytes=... crc32=..."></textarea>
+          <output id="captureResult" class="result">UNVERIFIED · No complete frame received.</output>
+          <div class="camera-result"><div class="camera-placeholder" id="cameraPlaceholder">NO VERIFIED FRAME<span>JPEG acceptance awaiting evidence</span></div><img id="cameraImage" alt="Operator-supplied reconstructed JPEG preview" hidden><div class="frame-meta" id="frameMeta">CRC32 · —<br>Bytes · —<br>Source · UNVERIFIED</div></div>
+          <div class="visual-gate">
+            <label class="checkline"><input id="visualCheck" type="checkbox"> I inspected the decoded image and confirmed it shows the intended, consented scene.</label>
+            <label class="checkline"><input id="changeCheck" type="checkbox"> Two source-correlated frames show a deliberate scene change (not a replay).</label>
+            <label class="checkline"><input id="sourceCheck" type="checkbox"> The frame IDs and capture times correlate to this exact S3 boot/device log.</label>
+            <button id="recordVisual">Record scoped visual acceptance</button>
+            <output id="visualResult" class="result">BLOCKED · Need decoded device-correlated frames.</output>
+          </div>
+        </article>
+      </section>
+      <section class="panel" id="panel-gateway">
+        <div class="section-heading"><h2>Live-source &amp; gateway checks</h2><span>Explicit authenticated requests only</span></div>
+        <div class="two-col">
+          <article class="card"><div class="eyebrow gold">07 / API FRESHNESS</div><h3>Device status probe</h3><p>Use the device’s authorized HTTPS API or an authenticated trusted proxy. Validate status, exact device ID, timestamp, and source flags. A 200 response is not sensor provenance.</p>
+            <label>Status endpoint<input id="statusUrl" type="url" placeholder="https://gateway.example/api/v1/status"></label>
+            <label>Bearer token (memory only)<input id="statusToken" type="password" autocomplete="off" placeholder="Cleared after each request"></label>
+            <button id="probeStatus" class="primary">Fetch &amp; classify now</button><output id="statusResult" class="result">DISCONNECTED · No request has been made.</output><pre id="statusPreview" class="payload">No response</pre>
+          </article>
+          <article class="card"><div class="eyebrow gold">11 / SKYNET INTEGRATION</div><h3>Separate reporting gateway</h3><p>Export a redacted acceptance receipt for SkyNet/RuView. Optional HTTPS POST requires an explicitly configured gateway and operator confirmation. No images, raw CSI, secrets, or personal network addresses are included in receipts.</p>
+            <label>Evidence ingestion endpoint<input id="gatewayUrl" type="url" placeholder="https://authorized-gateway.example/acceptance"></label>
+            <label>Bearer token (memory only)<input id="gatewayToken" type="password" autocomplete="off" placeholder="Cleared immediately after request"></label>
+            <label class="checkline"><input id="sendConsent" type="checkbox"> I authorize sending this sanitized evidence report to the configured gateway.</label>
+            <div class="buttonrow"><button id="exportReport">Export local JSON</button><button id="submitReport" class="primary">Submit evidence receipt</button></div>
+            <output id="gatewayResult" class="result">UNVERIFIED · No authenticated ingestion receipt.</output>
+            <div class="smallprint">A successful HTTP POST is a transport receipt only; ingestion, enrollment, RuView CSI, detection, and deployment require separate backend-side verification.</div>
+          </article>
+        </div>
+        <article class="card"><h3>Deployment and sensing gates</h3><div class="gate-grid"><div><span class="badge b-block">UNVERIFIED</span><b>HTTPS/WSS relay</b><small>No confirmed production gateway session</small></div><div><span class="badge b-block">UNVERIFIED</span><b>CSI / RuView</b><small>Requires authorized RF traces and model evidence</small></div><div><span class="badge b-block">UNVERIFIED</span><b>Pages deployment</b><small>Independent CI + public HTTPS check required</small></div></div></article>
+      </section>
+      <section class="panel" id="panel-evidence">
+        <div class="section-heading"><h2>Provenance &amp; regressions</h2><span>Records scoped to selected profile · session only</span></div>
+        <div class="two-col">
+          <article class="card"><div class="eyebrow gold">EVIDENCE RECORD</div><h3>Classify a test with exact source</h3>
+            <label>Test step<select id="evidenceStep"></select></label>
+            <label>Status<select id="evidenceState"><option>UNVERIFIED</option><option>VERIFIED</option><option>BLOCKED</option><option>FAILED</option></select></label>
+            <label>Source class<select id="evidenceSource"><option value="HOST">HOST-SIDE CHECK</option><option value="DEVICE">DIRECT DEVICE LOG (OPERATOR-SUPPLIED)</option><option value="SIMULATED">SIMULATED STAGING</option></select></label>
+            <label>Exact evidence URL<input id="evidenceUrl" type="url" placeholder="https:// CI log / immutable artifact / redacted trace"></label>
+            <label>Trace SHA-256 (optional)<input id="evidenceHash" placeholder="64 hexadecimal digits"></label>
+            <label>Rationale<textarea id="evidenceNote" rows="3" placeholder="What the evidence proves, and what it does not prove"></textarea></label>
+            <button id="saveEvidence" class="primary">Add scoped evidence</button><output id="evidenceResult" class="result">No evidence added.</output>
+          </article>
+          <article class="card"><div class="eyebrow gold">SELF-TESTS</div><h3>Protocol regression harness</h3><p>Run deterministic checks against CRC32 reference vectors, valid/synthetic JPEG transport, truncated logs, duplicate or missing chunks, wrong CRC, bad JPEG markers, stale/future timestamps, wrong device IDs, and offset validation.</p><button id="runTests" class="primary">Run regression checks</button><pre id="regressionResult" class="payload">Not run</pre><p class="smallprint">Self-tests confirm browser code paths, not any physical device or firmware.</p></article>
+        </div>
+        <article class="card"><div class="section-heading"><h3>Audit ledger</h3><button id="clearSession" class="text-button">Clear session data</button></div><div class="table-scroll"><table><thead><tr><th>Recorded</th><th>Step</th><th>Status</th><th>Evidence class</th><th>Source</th></tr></thead><tbody id="evidenceRows"><tr><td colspan="5">No recorded evidence yet</td></tr></tbody></table></div></article>
+      </section>
+    </div>
+    <footer class="footer"><span>SkyNet Main × 918 Technologies · Acceptance build</span><span>Local session · No automatic upload · No flash or erase controls</span></footer>
+  </main>
+</div>
+<div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>
