@@ -70,7 +70,7 @@ test('offset is documented hexadecimal and 4KiB aligned',()=>{
   throwsMessage(()=>normalizeOffset('0x10001'),'4 KiB-aligned');
 });
 const NOW=1763170000000;
-const reported={device_id:'chip-1234',timestamp:new Date(NOW-1000).toISOString(),online:true};
+const reported={device_id:'chip-1234',timestamp:new Date(NOW-1000).toISOString(),online:true,source_type:'physical-device'};
 test('matching fresh API status is transport-only accepted',()=>assert.equal(classifyStatus(reported,'chip-1234',NOW).state,'VERIFIED'));
 test('wrong device identity fails',()=>assert.equal(classifyStatus(reported,'chip-wrong',NOW).state,'FAILED'));
 test('synthetic status never passes',()=>assert.equal(classifyStatus({...reported,synthetic:true},'chip-1234',NOW).state,'BLOCKED'));
@@ -78,6 +78,7 @@ test('stale timestamp and offline status blocked',()=>{
   assert.equal(classifyStatus({...reported,timestamp:new Date(NOW-100000).toISOString()},'chip-1234',NOW).state,'BLOCKED');
   assert.equal(classifyStatus({...reported,connected:false},'chip-1234',NOW).state,'BLOCKED');
 });
+test('missing source provenance cannot pass live gate',()=>assert.equal(classifyStatus({device_id:'chip-1234',timestamp:new Date(NOW).toISOString()},'chip-1234',NOW).state,'UNVERIFIED'));
 test('missing timestamp and identity not live',()=>{
   assert.equal(classifyStatus({device_id:'chip-1234'},'chip-1234',NOW).state,'UNVERIFIED');
   assert.equal(classifyStatus({timestamp:new Date(NOW).toISOString()},'chip-1234',NOW).state,'UNVERIFIED');
