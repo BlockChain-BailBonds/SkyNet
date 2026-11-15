@@ -195,10 +195,10 @@ function setupHandlers() {
   $('recordApproval').addEventListener('click',()=>{
     try {
       if (currentProfile !== 'cam') throw Error('Only the new CAM profile can record flash approval');
-      for (const required of ['usb','image','backup']) if (currentState(required) !== 'VERIFIED') throw Error('Missing verified ' + step(required).title);
+      for (const required of ['usb','pinout','image','backup']) if (currentState(required) !== 'VERIFIED') throw Error('Missing verified ' + step(required).title);
       if (!$('approveBox').checked || $('approvePhrase').value !== 'APPROVE FLASH') throw Error('Explicit checkbox and exact approval phrase required');
       if ($('approveId').value.trim() !== profileFacts().deviceId) throw Error('Approval device ID does not match read-only identification');
-      if (!profileFacts().image || !profileFacts().backup) throw Error('Image and backup hashes are not present');
+      if (!profileFacts().image || !profileFacts().backup || !profileFacts().pinout) throw Error('Exact pinout reference, image and backup are all required');
       profileFacts().approval = {deviceId:profileFacts().deviceId,image:profileFacts().image.sha256,backup:profileFacts().backup.sha256,offset:profileFacts().image.offset,at:new Date().toISOString()};
       record('approval','VERIFIED','HOST','Operator signed an in-session approval only: no flash, erase, or device modification performed');
       setResult('approvalResult','VERIFIED','Approval recorded for ' + profileFacts().deviceId + '. Actual flasher must obtain separate confirmation.');
@@ -382,7 +382,7 @@ function buildReport() {
   return {
     schema:'skynet.s3cam.acceptance.v1',generated_at:new Date().toISOString(),profile:currentProfile,
     device_id:f.deviceId || null,build_id:f.bootId || null,
-    claims:{flashed:false,camera_physical_acceptance:currentState('visual')==='VERIFIED'?'operator_attested':'unverified',csi_detected:false,ruview_detection_verified:false,live_ingestion_verified:false,production_deployed:false},
+    claims:{flashing:'unverified_no_device_write_performed_by_console',camera_physical_acceptance:currentState('visual')==='VERIFIED'?'operator_attested':'unverified',csi_detected:'unverified',ruview_detection_verified:'unverified',live_ingestion_verified:'unverified',production_deployed:'unverified'},
     image:f.image ? {sha256:f.image.sha256,size:f.image.size,offset:f.image.offset,manifest:f.image.manifest} : null,
     backup:f.backup ? {sha256:f.backup.sha256,size:f.backup.size,source:f.backup.source} : null,
     approval:f.approval ? {...f.approval,kind:'approval_record_only_no_write'} : null,
@@ -407,7 +407,7 @@ function runTests(){
   assert('Invalid JPEG SOI rejected',()=>rejects(()=>parseCaptureLog(badlog)));
   assert('Valid offset accepted',()=>normalizeOffset('0x10000')==='0x10000');
   assert('Unaligned offset rejected',()=>rejects(()=>normalizeOffset('0x10001')));
-  const base={device_id:'real-chip',timestamp:new Date().toISOString()};
+  const base={device_id:'real-chip',timestamp:new Date().toISOString(),source_type:'physical-device'};
   assert('Fresh matching status is scoped to HTTP',()=>classifyStatus(base,'real-chip').state==='VERIFIED');
   assert('Wrong chip ID rejected',()=>classifyStatus(base,'other-chip').state==='FAILED');
   assert('Synthetic report blocked',()=>classifyStatus({...base,synthetic:true},'real-chip').state==='BLOCKED');
