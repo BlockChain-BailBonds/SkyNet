@@ -1,6 +1,11 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
+#include <WiFiClientSecure.h>
+#include <mbedtls/md.h>
+#include <mbedtls/sha256.h>
+#include <esp_system.h>
+#include <time.h>
 #include <HTTPClient.h>
 #include <WebServer.h>
 #include <Preferences.h>
@@ -18,6 +23,8 @@ constexpr uint8_t kBacklight=21;
 constexpr uint8_t kTouchCs=33;
 constexpr uint8_t kTouchIrq=36;
 constexpr uint32_t kPollMs=8000;
+constexpr uint32_t kUplinkMs=60000;
+constexpr uint32_t kMinUnixTime=1704067200;
 constexpr uint32_t kTimeoutMs=3500;
 constexpr size_t kMaxJson=4096;
 constexpr size_t kMaxJpeg=65536;
@@ -34,9 +41,12 @@ bool portal=false;
 bool lastTouch=false;
 bool cameraShown=false;
 uint32_t lastPoll=0;
+uint32_t lastUplink=0;
 uint32_t restartAt=0;
 String wifiName,wifiPass,s3Host,ruviewPath,cameraPath,apPassword;
 uint16_t s3Port=80;
+String uplinkHost,uplinkId,uplinkSecret,uplinkCa,uplinkState="NOT CONFIGURED";
+uint16_t uplinkPort=443;
 String s3State="UNVERIFIED",ruviewState="UNVERIFIED",cameraState="UNVERIFIED";
 
 bool privateIp(const String& host) {
@@ -87,7 +97,7 @@ void showStatus() {
   line(102,"RuView: "+ruviewState,ruviewState=="API RESPONDS"?TFT_GREEN:TFT_ORANGE);
   line(125,"Camera: "+cameraState,cameraState=="JPEG RECEIVED"?TFT_GREEN:TFT_ORANGE);
   line(149,"Heap: "+String(ESP.getFreeHeap())+" B",TFT_LIGHTGREY);
-  line(172,"No CSI or camera claim from HTTP alone",TFT_YELLOW);
+  line(172,"Uplink: "+uplinkState,uplinkState=="ACK RECEIVED"?TFT_GREEN:TFT_YELLOW);
   footer();
 }
 void showCamera() {
@@ -114,7 +124,7 @@ void showSetup() {
     line(64,"Tap upper area to start setup AP",TFT_YELLOW);
     line(92,"Saved Wi-Fi: "+wifiName,TFT_WHITE);
     line(120,"S3 host: "+s3Host,TFT_WHITE);
-    line(150,"Settings stored in ESP32 NVS",TFT_LIGHTGREY);
+    line(150, uplinkHost.isEmpty()?"Uplink not configured":"Uplink gateway configured",TFT_LIGHTGREY);
   }
   footer();
 }
@@ -209,6 +219,136 @@ void poll() {
   ruviewState=ruviewPath.isEmpty()?"NOT CONFIGURED":
               (fetchJson(ruviewPath)?"API RESPONDS":"NO JSON / OFFLINE");
 }
+
+bool validGatewayHost(const String& host) {
+  if(host.length()<4 || host.length()>120 || host.indexOf('.')<=0 ||
+     host[0]=='.' || host.endsWith(".") || host.indexOf("..")>=0) return false;
+  for(size_t i=0;i<host.length();++i) {
+    char c=host[i];
+    if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||
+         (c>='0'&&c<='9')||c=='-'||c=='.')) return false;
+  }
+  return true;
+}
+bool validDeviceId(const String& id) {
+  if(id.length()<8 || id.length()>64) return false;
+  for(size_t i=0;i<id.length();++i) {
+    char c=id[i];
+    if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||
+         (c>='0'&&c<='9')||c=='_'||c=='-')) return false;
+  }
+  return true;
+}
+bool validSecret(const String& secret) {
+  if(secret.length()!=64) return false;
+  for(size_t i=0;i<secret.length();++i) {
+    char c=secret[i];
+    if(!((c>='0'&&c<='9')||(c>='a'&&c<='f'))) return false;
+  }
+  return true;
+}
+String hexBytes(const uint8_t* bytes, size_t count) {
+  static const char* digits="0123456789abcdef";
+  String result;
+  result.reserve(count*2);
+  for(size_t i=0;i<count;i++) {
+    result+=digits[bytes[i]>>4];
+    result+=digits[bytes[i]&15];
+  }
+  return result;
+}
+bool uplinkConfigured() {
+  return validGatewayHost(uplinkHost) && validDeviceId(uplinkId) &&
+         validSecret(uplinkSecret) && uplinkCa.indexOf("-----BEGIN CERTIFICATE-----")>=0 &&
+         uplinkCa.indexOf("-----END CERTIFICATE-----")>=0;
+}
+void sendUplink() {
+  if(!uplinkConfigured()) {
+    uplinkState="NOT CONFIGURED";
+    return;
+  }
+  if(WiFi.status()!=WL_CONNECTED) {
+    uplinkState="WIFI OFFLINE";
+    return;
+  }
+  const time_t seconds=time(nullptr);
+  if(seconds<static_cast<time_t>(kMinUnixTime)) {
+    uplinkState="CLOCK BLOCKED";
+    return;
+  }
+  if(ESP.getMaxAllocHeap()<25000) {
+    uplinkState="LOW HEAP";
+    return;
+  }
+  StaticJsonDocument<384> message;
+  message["schema"]="skynet-pocket-heartbeat/v1";
+  message["kind"]="heartbeat";
+  message["device_id"]=uplinkId;
+  message["firmware_id"]="cyd-n4-pocket-uplink-v1";
+  message["uptime_ms"]=static_cast<uint32_t>(millis());
+  message["wifi_rssi_dbm"]=constrain(WiFi.RSSI(),-127,0);
+  message["s3_http_ok"]=s3State=="HTTP 200 JSON";
+  message["ruview_api_ok"]=ruviewState=="API RESPONDS";
+  String body;
+  serializeJson(message,body);
+  if(body.length()==0 || body.length()>1024) {
+    uplinkState="PAYLOAD BLOCKED";
+    return;
+  }
+  uint8_t bodyHash[32];
+  if(mbedtls_sha256_ret(reinterpret_cast<const unsigned char*>(body.c_str()),
+                        body.length(),bodyHash,0)!=0) {
+    uplinkState="SHA FAILED"; return;
+  }
+  uint8_t nonceData[16];
+  esp_fill_random(nonceData,sizeof(nonceData));
+  String nonce=hexBytes(nonceData,sizeof(nonceData));
+  String stamp=String(static_cast<unsigned long>(seconds));
+  String canonical=String("POST")+char(10)+"/api/pocket/heartbeat"+char(10)+
+                   uplinkId+char(10)+stamp+char(10)+nonce+char(10)+
+                   hexBytes(bodyHash,sizeof(bodyHash));
+  uint8_t key[32];
+  for(size_t i=0;i<32;++i) {
+    String part=uplinkSecret.substring(i*2,i*2+2);
+    key[i]=static_cast<uint8_t>(strtoul(part.c_str(),nullptr,16));
+  }
+  uint8_t signature[32];
+  const mbedtls_md_info_t* sha=mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
+  bool signedOk=sha && mbedtls_md_hmac(
+      sha,key,sizeof(key),
+      reinterpret_cast<const unsigned char*>(canonical.c_str()),
+      canonical.length(),signature)==0;
+  memset(key,0,sizeof(key));
+  if(!signedOk) {uplinkState="HMAC FAILED";return;}
+  WiFiClientSecure tls;
+  tls.setCACert(uplinkCa.c_str());
+  tls.setTimeout(7);
+  HTTPClient http;
+  http.setTimeout(7000);
+  http.setReuse(false);
+  String url=String("https://")+uplinkHost+":"+String(uplinkPort)+"/api/pocket/heartbeat";
+  if(!http.begin(tls,url)) {uplinkState="TLS BLOCKED";return;}
+  http.addHeader("Content-Type","application/json");
+  http.addHeader("X-SkyNet-Device",uplinkId);
+  http.addHeader("X-SkyNet-Timestamp",stamp);
+  http.addHeader("X-SkyNet-Nonce",nonce);
+  http.addHeader("X-SkyNet-Signature",hexBytes(signature,sizeof(signature)));
+  int code=http.POST(reinterpret_cast<uint8_t*>(const_cast<char*>(body.c_str())),body.length());
+  String response;
+  if(code==201 && http.getSize()>=0 && http.getSize()<512) response=http.getString();
+  http.end();
+  StaticJsonDocument<256> ack;
+  if(code==201 && deserializeJson(ack,response)==DeserializationError::Ok &&
+     ack["schema"]=="skynet-pocket-ack/v1" && ack["accepted"]==true &&
+     ack["receipt"].as<String>().length()==64) {
+    uplinkState="ACK RECEIVED";
+    Serial.println("[uplink] accepted; signed heartbeat acknowledged");
+  } else {
+    uplinkState=(code>0)?"HTTP "+String(code):"TLS/NETWORK ERROR";
+    Serial.println("[uplink] blocked; no accepted gateway receipt");
+  }
+}
+
 void sendNoStore() {
   web.sendHeader("Cache-Control","no-store");
   web.sendHeader("Pragma","no-cache");
@@ -236,6 +376,13 @@ void startPortal() {
 <label>S3 HTTP port<input type="number" min="1" max="65535" value="80" name="port"></label><p></p>
 <label>RuView JSON path<input name="ru" value="/api/ruview" maxlength="80"></label><p></p>
 <label>Camera JPEG path (optional)<input name="cam" placeholder="/capture" maxlength="80"></label><p></p>
+<hr><h3>Optional SkyNet Main HTTPS uplink</h3>
+<p>Leave blank to retain the existing uplink settings. Requires operator-approved enrollment and trusted TLS root. No GitHub token.</p>
+<label>Gateway DNS host (no https://)<input name="uphost" maxlength="120" placeholder="gateway.example.org"></label><p></p>
+<label>Gateway TLS port<input name="upport" type="number" min="1" max="65535" value="443"></label><p></p>
+<label>Device ID<input name="upid" maxlength="64" placeholder="pocket-n4-0001"></label><p></p>
+<label>Device HMAC secret (64 hex)<input name="upsecret" type="password" maxlength="64" autocomplete="off"></label><p></p>
+<label>Trusted gateway CA certificate (PEM)<textarea name="upca" rows="5" maxlength="3000"></textarea></label><p></p>
 <button type="submit">Save to device & reboot</button></form>
 <p>Local read-only HTTP only. No video or RuView sensing is assumed.</p></body></html>)HTML";
     sendNoStore();
@@ -245,11 +392,33 @@ void startPortal() {
     String ssid=web.arg("ssid"), pass=web.arg("pass");
     String host=web.arg("host"), port=web.arg("port");
     String ru=web.arg("ru"), cam=web.arg("cam");
+    String hostNew=web.arg("uphost"), idNew=web.arg("upid"), secretNew=web.arg("upsecret");
+    String caNew=web.arg("upca");
+    String portNew=web.arg("upport");
+    secretNew.toLowerCase();
+    long pUp=portNew.toInt();
     long p=port.toInt();
     if(ssid.length()<1 || ssid.length()>32 || pass.length()>63 ||
        !privateIp(host) || p<1 || p>65535 || !validPath(ru) || !validPath(cam)) {
       sendNoStore();web.send(400,"text/plain","Invalid SSID, S3 private IPv4, port or path.");
       return;
+    }
+    if(!hostNew.isEmpty() &&
+       (!validGatewayHost(hostNew) || !validDeviceId(idNew) ||
+        !validSecret(secretNew) || caNew.length()>3000 ||
+        caNew.indexOf("-----BEGIN CERTIFICATE-----")<0 ||
+        caNew.indexOf("-----END CERTIFICATE-----")<0 ||
+        pUp<1 || pUp>65535)) {
+      sendNoStore();
+      web.send(400,"text/plain","Invalid gateway DNS, device ID, secret, TLS port or CA certificate.");
+      return;
+    }
+    if(!hostNew.isEmpty()) {
+      prefs.putString("uphost",hostNew);
+      prefs.putString("upid",idNew);
+      prefs.putString("upsecret",secretNew);
+      prefs.putString("upca",caNew);
+      prefs.putUShort("upport",static_cast<uint16_t>(pUp));
     }
     prefs.putString("ssid",ssid);
     prefs.putString("pass",pass);
@@ -306,6 +475,12 @@ void setup() {
   s3Port=prefs.getUShort("port",80);
   ruviewPath=prefs.getString("ru","/api/ruview");
   cameraPath=prefs.getString("cam","");
+  uplinkHost=prefs.getString("uphost","");
+  uplinkId=prefs.getString("upid","");
+  uplinkSecret=prefs.getString("upsecret","");
+  uplinkCa=prefs.getString("upca","");
+  uplinkPort=prefs.getUShort("upport",443);
+  uplinkState=uplinkConfigured()?"WAITING":"NOT CONFIGURED";
   if(!validPath(ruviewPath)) ruviewPath="/api/ruview";
   if(!validPath(cameraPath)) cameraPath="";
   showStatus();
@@ -313,12 +488,13 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
   WiFi.begin(wifiName.c_str(),wifiPass.c_str());
+  configTime(0,0,"pool.ntp.org","time.google.com");
   const uint32_t started=millis();
   while(WiFi.status()!=WL_CONNECTED && millis()-started<12000) {
     delay(200);
   }
   if(WiFi.status()!=WL_CONNECTED) startPortal();
-  else {poll();showStatus();lastPoll=millis();}
+  else {poll();showStatus();lastPoll=millis();lastUplink=millis()-kUplinkMs;}
 }
 void loop() {
   if(portal) web.handleClient();
@@ -327,6 +503,11 @@ void loop() {
   if(!portal && millis()-lastPoll>=kPollMs) {
     lastPoll=millis();
     poll();
+    if(page==Page::Status) showStatus();
+  }
+  if(!portal && millis()-lastUplink>=kUplinkMs) {
+    lastUplink=millis();
+    sendUplink();
     if(page==Page::Status) showStatus();
   }
   delay(25);
