@@ -302,7 +302,7 @@ function setupHandlers() {
       const payload = JSON.parse(raw);
       const verdict = classifyStatus(payload,profileFacts().deviceId);
       $('statusPreview').textContent = JSON.stringify({reported_device_id:payload.device_id ?? payload.deviceId ?? null,timestamp:payload.timestamp ?? payload.observed_at ?? payload.captured_at ?? payload.updated_at ?? null,source:payload.source_type ?? payload.source ?? null,online:payload.online ?? payload.connected ?? null},null,2);
-      profileFacts().lastStatus = {state:verdict.state,checkedAt:new Date().toISOString(),endpoint:url.origin + url.pathname};
+      profileFacts().lastStatus = {state:verdict.state,checkedAt:new Date().toISOString(),endpoint:'configured_authorized_endpoint_not_exported'};
       record('api',verdict.state,'DEVICE',verdict.reason);
       setResult('statusResult',verdict.state,verdict.reason + ' · ' + (verdict.ageMs===undefined?'':Math.round(verdict.ageMs/1000)+'s old') + '. Network HTTP ' + response.status + '.');
     } catch(e) {
@@ -381,7 +381,7 @@ function buildReport() {
   // Deliberately exclude raw logs, images, MAC/IP secrets, Wi-Fi credentials, freeform input and auth tokens.
   return {
     schema:'skynet.s3cam.acceptance.v1',generated_at:new Date().toISOString(),profile:currentProfile,
-    device_id:f.deviceId || null,build_id:f.bootId || null,
+    device_scope:f.deviceId?'exact_id_checked_in_local_session':'unverified',build_id:f.bootId || null,
     claims:{flashing:'unverified_no_device_write_performed_by_console',camera_physical_acceptance:currentState('visual')==='VERIFIED'?'operator_attested':'unverified',csi_detected:'unverified',ruview_detection_verified:'unverified',live_ingestion_verified:'unverified',production_deployed:'unverified'},
     image:f.image ? {sha256:f.image.sha256,size:f.image.size,offset:f.image.offset,manifest:f.image.manifest} : null,
     backup:f.backup ? {sha256:f.backup.sha256,size:f.backup.size,source:f.backup.source} : null,
@@ -389,7 +389,7 @@ function buildReport() {
     camera:f.capture ? {...f.capture,source:'operator_supplied'} : null,
     status_probe:f.lastStatus || null,
     checks:list.map(id=>({id,state:currentState(id)})),
-    evidence:profileRecords().map(r=>({time:r.time,step:r.step,state:r.state,source:r.source,url:r.url||null,digest:r.digest||null,summary:r.note.slice(0,200)}))
+    evidence:profileRecords().map(r=>({time:r.time,step:r.step,state:r.state,source:r.source,url:r.url||null,digest:r.digest||null}))
   };
 }
 function runTests(){
