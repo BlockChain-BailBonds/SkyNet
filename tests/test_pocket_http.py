@@ -98,6 +98,13 @@ class PocketHttpTest(unittest.TestCase):
         self.assertEqual(status, 200, result)
         self.assertEqual(len(json.loads(result)["receipts"]), 1)
 
+    def test_http_rejects_noncanonical_signed_route(self):
+        payload, headers = self.signed_heartbeat()
+        status, _, _ = self.request("/api/pocket/heartbeat?ignored=1", method="POST",
+                                     data=payload, headers=headers)
+        self.assertEqual(status, 404)
+        self.assertEqual(self.store.receipts()["receipts"], [])
+
     def test_http_rejects_oversized_payload(self):
         status, _, _ = self.request("/api/pocket/heartbeat", method="POST",
                                     data=b"x" * 1025, headers={"Content-Type": "application/json"})
