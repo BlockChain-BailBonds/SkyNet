@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="SkyNet CodeForge read-only autonomous engineering status">
+<title>SkyNet CodeForge | 918 Technologies</title>
+<style>
+:root{color-scheme:dark;--gold:#e9b64b;--line:#40331b;--dim:#aba594;--ok:#75d8a4;--warn:#ffbe73;--bg:#080906}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 70% 0,#24190a 0,transparent 60%),var(--bg);color:#f0ebdb;font:15px/1.55 system-ui,sans-serif}a{color:var(--gold)}header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;padding:22px;border-bottom:1px solid var(--line)}header strong{letter-spacing:.15em;color:var(--gold)}main{max-width:1150px;margin:auto;padding:24px}h1{font-size:clamp(28px,5vw,46px);margin:12px 0}h2{font-size:14px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}p{color:var(--dim)}.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.box{background:#11120e;border:1px solid var(--line);padding:18px;border-radius:8px;overflow-wrap:anywhere}.tag{display:inline-block;font-size:11px;letter-spacing:.07em;border:1px solid currentColor;padding:3px 8px}.verified{color:var(--ok)}.blocked{color:#f98a84}.unverified{color:var(--warn)}button{border:1px solid var(--gold);background:#e9b64b;color:#1b1304;padding:10px 16px;font:inherit;cursor:pointer;font-weight:700}.links{display:flex;gap:14px;flex-wrap:wrap}ul{padding-left:22px}li{margin:10px 0}.sub{font-size:12px;color:var(--dim)}@media(max-width:720px){.cols{grid-template-columns:1fr}main{padding:15px}header{padding:15px}}
+</style>
+</head><body>
+<header><div><strong>918 TECHNOLOGIES / SKYNET</strong><div class="sub">CodeForge operator status · read-only</div></div><a href="../index.html">Return to SkyNet Main</a></header>
+<main>
+<h1>CodeForge</h1>
+<p>Autonomous engineering requests execute on isolated GitHub Actions runners, never inside this browser. Pull requests and source checks are not proof of deployed or functioning sensors.</p>
+<div class="cols">
+<section class="box"><h2>Public source status</h2><div id="repo"><span class="tag unverified">NOT CHECKED</span></div></section>
+<section class="box"><h2>Auto-merge eligibility</h2><div id="merge"><span class="tag blocked">UNVERIFIED</span></div></section>
+<section class="box"><h2>Last coding workflow</h2><div id="last"><span class="tag unverified">NOT CHECKED</span></div></section>
+</div>
+<section class="box" style="margin-top:15px"><h2>CodeForge pull requests</h2><div id="prs">No PR information has been retrieved yet.</div></section>
+<section class="box" style="margin-top:15px"><h2>Scope and safety</h2>
+<p>Automatic merge is restricted to docs/codeforge-notes/status.md. It still requires active main branch rules, five exact checks, a current human approval and the operator-approved label. Forecast or application code is always review-only.</p>
+<div class="links"><a href="https://github.com/BlockChain-BailBonds/SkyNet/actions/workflows/codeforge.yml">Run CodeForge</a><a href="https://github.com/BlockChain-BailBonds/SkyNet/pulls">Pull requests</a><a href="../docs/codeforge.md">Engineering guide</a><a href="https://github.com/BlockChain-BailBonds/SkyNet/actions/workflows/codeforge-merge.yml">Merge controller</a></div>
+</section>
+<div style="margin-top:18px"><button id="reload">Refresh GitHub evidence</button><span id="status" class="sub" style="margin-left:12px">No public GitHub API request sent yet.</span></div>
+</main><script src="./assets/codeforge.js" defer></script></body></html>

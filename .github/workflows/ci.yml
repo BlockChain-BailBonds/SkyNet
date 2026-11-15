@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -40,4 +41,4 @@ jobs:
         run: sha256sum -c MANIFEST.sha256
       - name: Validate browser JavaScript syntax
         if: matrix.python-version == '3.13'
-        run: node --check static/assets/spin.js && node --check static/assets/cern.js
+        run: node --check static/assets/spin.js && node --check static/assets/cern.js && node --check static/assets/codeforge.js

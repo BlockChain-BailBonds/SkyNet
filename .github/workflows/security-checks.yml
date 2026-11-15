@@ -14,3 +14,4 @@ jobs:
           python -m json.tool agent/model-manifest.json >/dev/null
           python -m json.tool data/public/latest-alerts.json >/dev/null
           node --check static/assets/spin.js
+          node --check static/assets/codeforge.js
