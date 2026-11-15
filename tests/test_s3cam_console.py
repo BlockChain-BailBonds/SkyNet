@@ -18,6 +18,12 @@ class S3CamConsoleProtocolTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout)
 
+    def test_javascript_syntax(self):
+        root = ROOT / 'static' / 's3-cam-acceptance'
+        for name in ('protocol.mjs', 'app.mjs'):
+            result = subprocess.run(['node', '--check', str(root / name)], cwd=ROOT, capture_output=True, text=True, timeout=20)
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
     def test_pages_module_is_complete(self):
         root = ROOT / "static" / "s3-cam-acceptance"
         html = (root / "index.html").read_text(encoding="utf-8")
