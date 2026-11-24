@@ -218,3 +218,12 @@ MANIFEST.sha256           Source integrity reference for listed paths
 Original SkyNet integration material: **© 2026 Matthew Blake Ward, in association with 918 Technologies. All rights reserved.** This attribution is for the newly authored integration and documentation and does not claim ownership or licensing rights in RuView, CERN, NASA, NOAA, USGS, GitHub, Google, ESA, or other providers' software, imagery, feeds, instruments or trademarks. Comply with each data product's availability, acceptable use, citation and redistribution terms.
 
 See [IP notice](IP_NOTICE.md), [third-party notices](THIRD_PARTY_NOTICES.md), [architecture](docs/architecture.md), [evidence report](docs/evidence-report.md), and [CERN integration](docs/cern.md).
+
+## Dual-device status
+
+The existing Compute World Bridge README records software-level dual-process checks with two distinct signing identities. Those checks were not rerun in this workspace. Physical two-device operation, separate-network transport, ESP32 enrollment, and end-to-end SkyNet telemetry remain unverified.
+
+
+## Compute World bridge status
+
+The separate Compute World Bridge repository records software-level dual-process checks with independent software identities. This is not evidence of two physical devices connected to SkyNet. Physical dual-device operation, ESP32 enrollment, and end-to-end telemetry remain unverified; see the bridge and deployment status documentation in the native `~/918-Technologies` workspace.
