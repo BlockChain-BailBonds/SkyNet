@@ -219,11 +219,8 @@ Original SkyNet integration material: **© 2026 Matthew Blake Ward, in associati
 
 See [IP notice](IP_NOTICE.md), [third-party notices](THIRD_PARTY_NOTICES.md), [architecture](docs/architecture.md), [evidence report](docs/evidence-report.md), and [CERN integration](docs/cern.md).
 
-## Dual-device status
+## Validation record
 
-The existing Compute World Bridge README records software-level dual-process checks with two distinct signing identities. Those checks were not rerun in this workspace. Physical two-device operation, separate-network transport, ESP32 enrollment, and end-to-end SkyNet telemetry remain unverified.
+Historical milestones are separated by category. The project owner confirms that physical dual-device computation, device communication within the tested scope, distributed job execution, and GPU tests passed. The current recovered signed relay ping artifacts verify relay communication only; recovered Kaggle evidence verifies two Tesla T4 GPU allocation, workload execution, result checks, and utilization sampling. These do not establish ESP32 integration or full SkyNet end-to-end operation. Host-independent computation remains a separate research objective. See the private authoritative [SkyNet OS Core validation registry](https://github.com/BlockChain-BailBonds/SkyNet-OS-Core/tree/main/registries) for evidence scope and digests.
 
-
-## Compute World bridge status
-
-The separate Compute World Bridge repository records software-level dual-process checks with independent software identities. This is not evidence of two physical devices connected to SkyNet. Physical dual-device operation, ESP32 enrollment, and end-to-end telemetry remain unverified; see the bridge and deployment status documentation in the native `~/918-Technologies` workspace.
+© 2026 Matthew Blake Ward / 918 Technologies. All rights reserved.
